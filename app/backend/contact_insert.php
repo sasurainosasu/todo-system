@@ -59,10 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $to = $email;
         $subject = "お問い合わせがありました。";
         $content = $name."　様\r\n\r\nお問い合わせを受け付けました。\r\n\r\n";
-        $content.= "▽お問い合わせ内容";
+        $content.= "▽お問い合わせ内容\r\n";
         $content.= $message;
-        $headers = "From: sunf.peridot.9208@gmail.com";
-
+        $headers = ['From' => 'sunf.peridot.9208@gmail.com', 'Content-Type'=>'text/plain; charset=UTF-8', 'Content-Transfer-Encoding'=>'8bit'];
+        
         //メールの送信に成功した場合
 		if(mb_send_mail($to, $subject, $content,$headers)){
             $stmt = $conn->prepare("COMMIT;");
