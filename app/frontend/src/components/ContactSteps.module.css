@@ -1,0 +1,91 @@
+/* components/ContactSteps.module.css */
+
+.contactSteps {
+  display: flex;
+  width: 100%;
+  padding: 1rem 0;
+  border-bottom: 1px solid #dee2e6;
+  position: relative; /* Added for correct z-index of lines */
+  z-index: 1; /* Ensure steps are above the lines */
+}
+
+.stepItem {
+  flex: 1;
+  text-align: center;
+  position: relative; /* Crucial for positioning the ::after pseudo-element */
+  font-weight: bold;
+  z-index: 2; /* Keep step content above lines */
+}
+
+.stepContent { /* Linkからdivに変更された新しいクラス */
+  display: block;
+  padding: 0.5rem 0;
+  color: #6c757d;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  cursor: default; /* クリックできないことを明示 */
+}
+
+.stepCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  color: #495057;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 0.5rem;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.stepName {
+  font-size: 0.9rem;
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+/* Connecting Line */
+.stepItem:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  /* Calculate top based on stepCircle height + border + margin-top */
+  top: calc(15px + 2px); /* 15px (half circle height) + 2px (circle border) */
+  left: 50%; /* Start from the center of the current step item */
+  width: 100%; /* Line spans the full width of the current flex item */
+  height: 2px;
+  background-color: #e9ecef;
+  transform: translateX(0); /* Resetting transform for clearer logic */
+  z-index: -1; /* Place behind the circles */
+}
+
+/* 現在のステップのスタイル */
+.stepItem.current .stepCircle {
+  background-color: #0d6efd; /* Bootstrap primary color */
+  border-color: #0d6efd;
+  color: white;
+}
+
+.stepItem.current .stepContent, /* .stepLink から .stepContent に変更 */
+.stepItem.current .stepName {
+  color: #0d6efd;
+}
+
+/* 完了済みのステップのスタイル */
+.stepItem.completed .stepCircle {
+  background-color: #198754; /* Bootstrap success color */
+  border-color: #198754;
+  color: white;
+}
+
+.stepItem.completed .stepContent, /* .stepLink から .stepContent に変更 */
+.stepItem.completed .stepName {
+  color: #198754;
+}
+
+/* Ensure the line turns green if the *previous* step is completed */
+/* This rule must come AFTER the base ::after rule */
+.stepItem.completed:not(:last-child)::after {
+  background-color: #198754;
+}
