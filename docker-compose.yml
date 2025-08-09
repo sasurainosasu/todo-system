@@ -34,14 +34,12 @@ services:
       # appディレクトリをマウントしてPHPからファイルを実行できるようにする
       - ./app:/var/www/html
     environment:
-      DB_HOST: mysql
-      DB_NAME: my_database
-      DB_USER: user
-      DB_PASSWORD: password
       # MailHogの設定を追加
       MAILHOG_HOST: mailhog
       MAILHOG_PORT: 1025
       TZ: Asia/Tokyo
+    env_file:
+      - .env
     networks:
       - app-network
 
@@ -67,6 +65,11 @@ services:
       # Docker環境でのホットリロードを安定させるための設定
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
     networks:
       - app-network
     # コンテナを起動し続けるためにttyを有効化
@@ -82,9 +85,9 @@ services:
       # ホストの3306番ポートをコンテナの3306番ポートに接続
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: my_database #各自変更
-      MYSQL_USER: user #各自変更
-      MYSQL_PASSWORD: password #各自変更
+      MYSQL_DATABASE: ${DB_NAME} #各自変更
+      MYSQL_USER: ${DB_USER} #各自変更
+      MYSQL_PASSWORD: ${DB_PASSWORD} #各自変更
       MYSQL_ROOT_PASSWORD: rootpassword #各自変更
       TZ: Asia/Tokyo
     volumes:

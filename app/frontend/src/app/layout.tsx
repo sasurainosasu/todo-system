@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono  } from "next/font/google";
 import "./globals.css";
 
 import 'bootstrap/dist/css/bootstrap.min.css'; // BootstrapのCSSを読み込む
-import AppNavbar from '../components/AppNavbar'; // 作成したNavbarコンポーネントをインポート
+import AppNavbar from '../components/AppNavbar';
+import { AuthProvider } from '@/context/AuthContext'; // AuthProviderをインポート
 
 
 const geistSans = Geist({
@@ -27,12 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-         <AppNavbar /> {/* Navbarをchildrenの上に配置 */}
-        {children}
+        <AuthProvider> {/* childrenとAppNavbarをProviderで囲む */}
+          <AppNavbar />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

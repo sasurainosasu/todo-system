@@ -1,4 +1,7 @@
 <?php
+
+include("class/Database.php");
+
 // セッションを開始
 session_start();
 
@@ -16,28 +19,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-$username = $input['username'] ?? '';
+$email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
 
+
+
+// データベース接続
+try {
+    $db = new Database();
+
+} catch (PDOException $e) {
+    // 接続エラーの場合はJSONでエラーメッセージを返す
+    http_response_code(500);
+    echo json_encode(["error" => "Database connection failed: " . $e->getMessage()]);
+    exit();
+}
+
+//結果を格納する変数の初期化
+$results = array();
+
+try {
+
+    // 全てのデータを取得
+    $results = $db->select("users",["where"=>['email' => $email]]);
+
+} catch (PDOException $e) {
+    // クエリ実行エラーの場合はJSONでエラーメッセージを返す
+    http_response_code(500);
+    echo json_encode(["error" => "Query failed: " . $e->getMessage()]);
+        exit();
+}
+
+
 // ユーザー名とパスワードの検証
-if ($username === 'admin' && $password === 'password123') {
+if(password_verify($password, $results[0]['password'])){
     // 認証成功
-    $_SESSION['user_id'] = $username; // セッションにユーザーIDを保存
+    $_SESSION['user_id'] = $results[0]['id']; // セッションにユーザーIDを保存
+    $_SESSION['email'] = $results[0]['email'];
     
     echo json_encode([
         'success' => true,
         'message' => 'ログインに成功しました。',
         'user' => [
-            'id' => $username,
-            'name' => '管理者'
+            'id' =>  $_SESSION['user_id'],
+            'name' => $results[0]['name'],
+            'email' => $results[0]['email']
         ]
     ]);
 } else {
     // 認証失敗
-    http_response_code(401);
+   // http_response_code(401);
     echo json_encode([
         'success' => false,
         'message' => 'ユーザー名またはパスワードが間違っています。'
     ]);
 }
+
 ?>

@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, Card, Button, Alert, Spinner, Modal } from 'react-bootstrap';
+import { Container, Card, Button, Alert, Spinner } from 'react-bootstrap';
 import type { FormData } from '../../../types/contact';
-import ContactSteps from '../../../components/ContactSteps'; // 追加
+import ContactSteps from '../../../components/ContactSteps';
+import LoadingOverlay from '../../../components/LoadingOverlay'; // 追加
 
 const ContactConfirmPage: React.FC = () => {
   const router = useRouter();
@@ -36,7 +37,7 @@ const ContactConfirmPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('/backend/contact_insert.php', {
+      const response = await fetch('/backend/contact-insert.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,8 +49,6 @@ const ContactConfirmPage: React.FC = () => {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('contactFormData');
         }
-        const errorData = await response.json();
-        alert(errorData.message);
         router.replace('/contact/complete');
       } else {
         const errorData = await response.json();
@@ -59,7 +58,7 @@ const ContactConfirmPage: React.FC = () => {
       console.error('フォーム送信エラー:', err);
       setError('ネットワークエラーが発生しました。時間を置いて再度お試しください。');
     } finally {
-
+      //setIsLoadingOverlay(false); // 通信が完了したら必ずローディングを非表示にする
     }
   };
 
@@ -76,8 +75,8 @@ const ContactConfirmPage: React.FC = () => {
 
   return (
     <Container>
-      <h2 className="bg-primary p-2 mt-20 text-white">お問い合わせ (確認)</h2>
-      <ContactSteps /> {/* ここにステップインジケーターを配置 */}
+      <h2 className="mt-5 text-center">お問い合わせ (確認)</h2>
+      <ContactSteps />
       <Card className="mb-3">
         <Card.Body>
           <Card.Title>入力内容をご確認ください</Card.Title>
@@ -107,15 +106,10 @@ const ContactConfirmPage: React.FC = () => {
           戻る
         </Button>
       </div>
+      
+      {/* 外部コンポーネントとして通信中オーバーレイを呼び出す */}
+      <LoadingOverlay show={isLoadingOverlay} />
 
-      <Modal show={isLoadingOverlay} centered backdrop="static" keyboard={false}>
-        <Modal.Body className="text-center">
-          <p>通信中...</p>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </Modal.Body>
-      </Modal>
     </Container>
   );
 };

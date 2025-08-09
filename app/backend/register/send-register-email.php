@@ -1,0 +1,91 @@
+<?php
+
+include_once("../class/Database.php");
+include_once("../class/MailService.php");
+
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *'); // 本番環境では特定のオリジンに制限する
+header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Headers: Content-Type');
+
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['message' => '無効なリクエストメソッドです。']);
+    exit;
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
+
+$name = $input['name'] ?? '';
+$email = $input['email'] ?? '';
+$password = $input['password'] ?? '';
+
+if (empty($name) || empty($email) || empty($password)) {
+    http_response_code(400);
+    echo json_encode(['message' => '必要な情報が不足しています。']);
+    exit;
+}
+
+try {
+
+    $db = new Database();
+
+    $db->select("users",["where" => ["email" => $email]]);
+
+    if (count($db->select("users",["where" => ["email" => $email]]))) {
+        http_response_code(409); // Conflict
+        echo json_encode(['message' => 'このメールアドレスは既に登録されています。']);
+        exit;
+    }
+
+    // パスワードをハッシュ化
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // 認証トークンを生成
+    $token = bin2hex(random_bytes(32));
+    $expires = date('Y-m-d H:i:s', strtotime('+24 hours')); // トークンの有効期限を24時間に設定
+
+    // 仮登録テーブルに情報を保存
+    // 既存の仮登録情報を削除
+    $db->begin();
+    $db->delete("temporary_users",["email" => $email]);
+
+    $insert_array = [
+        "name" => $name,
+        "email" => $email,
+        "password" => $hashed_password,
+        "token" => $token,
+        "expires_at" => $expires
+    ];
+    
+    $db->insert("temporary_users",$insert_array);
+    
+
+    // 登録確認メールを送信
+    $subject = "ToDo管理システム - ユーザー登録のご確認";
+
+    //プロトコル・ドメイン名の宣言
+    $base_url = $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'];
+
+    $mail_service = new MailService(getenv("FROM_EMAIL"),$base_url);
+
+    if ($mail_service->sendRegistrationEmail($email,$name,$token)) {
+        //メール送信が完了したタイミングでコミットする
+        $db->commit();
+        http_response_code(200);
+        echo json_encode(['message' => '確認メールを送信しました。メールボックスをご確認ください。']);
+    } else {
+        $db->rollback();
+        http_response_code(500);
+        echo json_encode(['message' => 'メールの送信に失敗しました。']);
+    }
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['message' => 'データベースエラー: ' . $e->getMessage()]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['message' => 'サーバーエラー: ' . $e->getMessage()]);
+}
+?>

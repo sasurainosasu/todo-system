@@ -1,4 +1,8 @@
 <?php
+
+include_once("class/Database.php");
+include_once("class/MailService.php");
+
 // ヘッダー設定: CORS対策とJSONレスポンス
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *"); // 本番環境では特定のドメインに制限してください
@@ -32,47 +36,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $data['email'];
     $message = $data['message'];
 
-    // ここでデータベースにデータを書き込む処理を実装します
-    // 例: MySQLへの接続とINSERT
-    $servername = getenv("DB_HOST");
-    $username = getenv('DB_USER');
-    $password = getenv('DB_PASSWORD');
-    $dbname = getenv('DB_NAME');
 
     try {
-        $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-        // PDOエラーモードを例外に設定
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $stmt = $conn->prepare("BEGIN;");
-        $stmt->execute();
+            $db = new Database();
+            $db->begin();
 
-        // SQLインジェクション対策のためプリペアドステートメントを使用
-        $stmt = $conn->prepare("INSERT INTO contact_message (name, email, message, created_at) VALUES (:name, :email, :message, NOW());");
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':message', $message);
-        $stmt->execute();
+           $insert_array = [
+                "name" => $name,
+                "email" => $email,
+                "message" => $message,
+                "created_at" => date("Y-m-d H:i:s")
+           ];
 
-        mb_language("Japanese");
-		mb_internal_encoding("UTF-8");
+            $db->insert("contact_message",$insert_array);
 
-        $to = $email;
-        $subject = "お問い合わせがありました。";
-        $content = $name."　様\r\n\r\nお問い合わせを受け付けました。\r\n\r\n";
-        $content.= "▽お問い合わせ内容\r\n";
-        $content.= $message;
-        $headers = ['From' => 'sunf.peridot.9208@gmail.com', 'Content-Type'=>'text/plain; charset=UTF-8', 'Content-Transfer-Encoding'=>'8bit'];
-        
+            $base_url = $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'];
+            $mail_service = new MailService(getenv("FROM_EMAIL"),$base_url);
+
         //メールの送信に成功した場合
-		if(mb_send_mail($to, $subject, $content,$headers)){
-            $stmt = $conn->prepare("COMMIT;");
-            $stmt->execute();
+		if($mail_service->sendContactEmail($name,$email,$message)){
+            $db->commit();
             // 成功レスポンス
             http_response_code(200); // OK
             echo json_encode(['message' => 'データが正常に保存されました。']);
         }else{
-            $stmt = $conn->prepare("ROLLBACK;");
-            $stmt->execute();
+            $db->rollback();
             http_response_code(500); // Internal Server Error
             echo json_encode(['message' => 'メールの送信に失敗しました。', 'error' => $e->getMessage()]);
 		}

@@ -10,6 +10,8 @@ import Pagination from 'react-bootstrap/Pagination';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 // PHPから取得するデータの型を定義
 interface Item {
@@ -23,15 +25,28 @@ interface Item {
 // タグ名（'div' または 'span'）を受け取り、動的に要素を生成します
 const ClientSideDateDisplay = ({ dateString, as }: { dateString: string; as: 'div' | 'span' }) => {
   const [formattedDate, setFormattedDate] = useState('');
+  const { isLoggedIn, isLoading } = useAuth();
+  const router = useRouter();
+
 
   useEffect(() => {
     setFormattedDate(new Date(dateString).toLocaleString());
   }, [dateString]);
 
+  useEffect(() => {
+    //ログインしているかチェック
+    //ログインされていない場合はトップページに遷移
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+  }, [isLoggedIn,router]);
+
   // 受け取ったタグ名で要素を動的に作成して返します
   return createElement(as, null, formattedDate);
 };
 
+// メインのページコンポーネント
 // メインのページコンポーネント
 export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
@@ -44,33 +59,45 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-useEffect(() => {
-  const apiUrl = '/backend/contact_list.php';
-  async function fetchItems() {
-    try {
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setCurrentPage(1);
-      setItems(data);
-    } catch (e: unknown) { // eの型をunknownに変更
-      // エラーがErrorオブジェクトであることを確認
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        // Errorオブジェクトでない場合は、一般的なエラーメッセージを設定
-        setError("An unknown error occurred");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }
-  fetchItems();
-}, []);
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
 
-  if (isLoading) {
+  useEffect(() => {
+    // 認証情報がロード中なら何もしない
+    if (isAuthLoading) {
+      return;
+    }
+    // ログインしていなければログインページにリダイレクト
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+
+    const apiUrl = '/backend/contact-list.php';
+    async function fetchItems() {
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setCurrentPage(1);
+        setItems(data);
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          setError(e.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchItems();
+  }, [isLoggedIn, isAuthLoading, router]); // 依存配列にisLoggedIn, isAuthLoading, routerを追加
+
+  // 認証情報のロード中、またはデータ取得中
+  if (isAuthLoading || isLoading) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
         <Spinner animation="border" role="status">
@@ -80,6 +107,16 @@ useEffect(() => {
     );
   }
 
+  // 認証エラー
+  if (!isLoggedIn) {
+    return (
+      <Container className="my-5 text-center">
+        <h2>このページは会員登録された方のみ閲覧可能です。</h2>
+      </Container>
+    );
+  }
+
+  // データ取得エラー
   if (error) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
@@ -90,6 +127,7 @@ useEffect(() => {
     );
   }
 
+  // データ取得成功後の処理
   const totalPages = Math.ceil(items.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -118,11 +156,12 @@ useEffect(() => {
     setSelectedItem(null);
   };
 
-  return (
-    <Container className="my-5">
-      <Row className="mb-4">
+  const contact_list = () => {
+    return(
+      <>
+       <Row className="mb-4">
         <Col>
-          <h1 className="text-center text-primary">
+          <h1 className="text-center">
             お問い合わせ一覧
           </h1>
           <hr />
@@ -224,6 +263,14 @@ useEffect(() => {
           </Modal.Footer>
         </Modal>
       )}
+      </>
+
+    );
+  }
+
+  return (
+    <Container className="my-5">
+      {contact_list()}
     </Container>
   );
 }

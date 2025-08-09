@@ -1,4 +1,3 @@
-// pages/register/confirm.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -15,19 +14,25 @@ interface FormValues {
 
 const Confirm: React.FC = () => {
   const router = useRouter();
-  // セッションから取得したデータを格納するstate
   const [registrationData, setRegistrationData] = useState<FormValues | null>(null);
-  
   const [isSending, setIsSending] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true); // データの読み込み状態を追加
 
   useEffect(() => {
-    // コンポーネントがマウントされた後にsessionStorageからデータを取得
+    // sessionStorageからデータを取得
     const storedData = sessionStorage.getItem('registrationData');
+    
     if (storedData) {
       setRegistrationData(JSON.parse(storedData));
+    } else {
+      // データがない場合は、不正なアクセスとみなし、/register にリダイレクト
+      // router.replaceを使用することで、ブラウザの「戻る」ボタンでこのページに戻るのを防ぐ
+      router.replace('/register');
     }
-  }, []);
+    
+    setIsDataLoading(false); // データの読み込み完了
+  }, [router]); // routerが変更された場合のみ実行
 
   const handleSend = async () => {
     if (!registrationData) return;
@@ -36,12 +41,11 @@ const Confirm: React.FC = () => {
     setApiError(null);
 
     try {
-      const response = await fetch('/backend/send-email', {
+      const response = await fetch('/backend/register/send-register-email.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // セッションから取得したデータを使用
         body: JSON.stringify(registrationData), 
       });
 
@@ -50,7 +54,7 @@ const Confirm: React.FC = () => {
       if (response.ok) {
         // 成功したらセッションデータを削除
         sessionStorage.removeItem('registrationData');
-        router.push('/email-sent');
+        router.push('/register/send-email');
       } else {
         setApiError(data.message || 'メールの送信に失敗しました。');
       }
@@ -62,16 +66,20 @@ const Confirm: React.FC = () => {
     }
   };
 
-  // データを表示する前に、データが存在するかチェック
-  if (!registrationData) {
+  // データの読み込み中はローディング表示
+  if (isDataLoading) {
     return (
       <Container className="my-5 text-center">
-        <p>データがありません。入力画面に戻ってください。</p>
-        <Button variant="secondary" onClick={() => router.push('/register')}>
-          入力画面へ戻る
-        </Button>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
       </Container>
     );
+  }
+
+  // registrationDataがない場合は既にリダイレクトされているため、何も表示しない
+  if (!registrationData) {
+    return null;
   }
 
   return (
