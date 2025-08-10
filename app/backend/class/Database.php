@@ -78,7 +78,6 @@ class Database {
         return $this->pdo->lastInsertId();
     }
 
-
     /**
      * INSERT文を実行する
      *
@@ -95,7 +94,6 @@ class Database {
         $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
         return $this->execute($sql, $data);
     }
-
 
     /**
      * UPDATE文を実行する
@@ -127,7 +125,6 @@ class Database {
         return $this->execute($sql, $params);
     }
 
-
     /**
      * DELETE文を実行する
      *
@@ -147,7 +144,6 @@ class Database {
         $sql = "DELETE FROM $table WHERE $where_clause";
         return $this->execute($sql, $where);
     }
-
 
     /**
      * SELECT文を実行する
@@ -192,6 +188,74 @@ class Database {
         return $this->query($sql, $params);
     }
 
+    /**
+     * SELECT文を比較演算子付きで実行する
+     *
+     * @param string $table テーブル名
+     * @param array $options 検索オプションの連想配列
+     * - 'columns' (string|array): 取得するカラム。デフォルトは'*'
+     * - 'where' (array): WHERE句の条件。連想配列のキーはカラム名、値は比較演算子と値の連想配列 ['age' => ['>', 20]]
+     * - 'limit' (int): 取得する件数
+     * - 'offset' (int): 取得開始位置
+     * - 'order_by' (string): ORDER BY句
+     * @return array 取得した結果の連想配列
+     */
+    public function selectCompare(string $table, array $options = []): array {
+        $options = array_merge([
+            'columns' => '*',
+            'where' => [],
+            'limit' => null,
+            'offset' => null,
+            'order_by' => null,
+        ], $options);
+        
+        $columns = is_array($options['columns']) ? implode(', ', $options['columns']) : $options['columns'];
+        $sql = "SELECT $columns FROM $table";
+        $params = [];
+        
+        if (!empty($options['where'])) {
+            $where_parts = [];
+            // 許可する比較演算子を定義
+            $allowed_operators = ['>', '<', '>=', '<=', '=', '!='];
+            foreach ($options['where'] as $key => $value) {
+                // valueが配列であり、演算子と値の両方が含まれていることを確認
+                if (is_array($value) && count($value) === 2) {
+                    $operator = $value[0];
+                    $val = $value[1];
+                    // 演算子が許可されているか確認
+                    if (in_array($operator, $allowed_operators)) {
+                        // プレースホルダーの重複を避けるため、一意なキーを生成
+                        $param_key = str_replace('.', '_', $key);
+                        $where_parts[] = "`$key` $operator :$param_key";
+                        $params[$param_key] = $val;
+                    } else {
+                        // 無効な演算子
+                        throw new InvalidArgumentException("Invalid operator: " . $operator);
+                    }
+                } else {
+                    // 通常の等価比較として扱う
+                    $param_key = str_replace('.', '_', $key);
+                    $where_parts[] = "`$key` = :$param_key";
+                    $params[$param_key] = $value;
+                }
+            }
+            $sql .= " WHERE " . implode(' AND ', $where_parts);
+        }
+        
+        if ($options['order_by']) {
+            $sql .= " ORDER BY " . $options['order_by'];
+        }
+        
+        if ($options['limit']) {
+            $sql .= " LIMIT " . (int)$options['limit'];
+            if ($options['offset']) {
+                $sql .= " OFFSET " . (int)$options['offset'];
+            }
+        }
+        
+        return $this->query($sql, $params);
+    }
+
     // --- トランザクション関連メソッド ---
 
     /**
@@ -202,7 +266,6 @@ class Database {
         return $this->pdo->beginTransaction();
     }
 
-
     /**
      * トランザクションをコミットする
      * @return bool
@@ -210,7 +273,6 @@ class Database {
     public function commit(): bool {
         return $this->pdo->commit();
     }
-
 
     /**
      * トランザクションをロールバックする

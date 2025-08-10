@@ -1,5 +1,10 @@
 <?php
 
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    exit();
+} 
+
 include_once("../class/Database.php");
 
 header('Content-Type: application/json');
@@ -11,6 +16,11 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 // POSTデータの取得
 $data = json_decode(file_get_contents('php://input'), true);
+
+foreach($data as $key => $value){
+    $data[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+}
+
 $token = $data['token'] ?? '';
 $new_password = $data['password'] ?? '';
 

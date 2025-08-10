@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 import Link from 'next/link';
-import {useRouter} from 'next/navigation';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState<string>('');
@@ -11,13 +10,13 @@ const ForgotPasswordPage = () => {
     const [error, setError] = useState<string>('');
     const [validationErrors, setValidationErrors] = useState<{ email?: string }>({});
     const [isLoading, setIsLoading] = useState<boolean>(false);
-           const router = useRouter();
 
     const checkEmail = async () => {
         try {
             const response = await fetch('/backend/forget-password/check-email-address.php', {
                 method: 'POST',
                 headers: {
+                    'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ email }),
@@ -67,6 +66,7 @@ const ForgotPasswordPage = () => {
                 const response = await fetch('/backend/forget-password/request-password-reset.php', {
                     method: 'POST',
                     headers: {
+                        'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ email }),
@@ -114,7 +114,7 @@ const ForgotPasswordPage = () => {
                                 メールをご確認ください。
                             </Alert>
                             <div className="mt-3">
-                                <Link href="/login" passHref legacyBehavior>
+                                <Link href="/login">
                                    ログイン画面に戻る
                                 </Link>
                             </div>
@@ -157,9 +157,9 @@ const ForgotPasswordPage = () => {
                             </Button>
                         </Form>
                         <div className="mt-3 text-center">
-                                <Button variant="primary" onClick={() => router.push('/login')}>
-                                ログイン画面に戻る
-                                </Button>
+                            <Link href="/login">
+                            ログイン画面に戻る
+                            </Link>
                         </div>
                     </div>
                 </Col>

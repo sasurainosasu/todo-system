@@ -1,9 +1,8 @@
 'use client';
 
-import { Container, Row, Col, Button, Card } from 'react-bootstrap';
-import { useRouter } from 'next/navigation'; // useRouterをインポート
-import  Image  from 'next/image';
-
+import { Container, Row, Col, Button } from 'react-bootstrap';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -46,7 +45,7 @@ export default function LandingPage() {
             </div>
           </div>
         </Col>
-      </Row> 
+      </Row>
 
       <hr />
 
@@ -56,37 +55,37 @@ export default function LandingPage() {
           <h2 className="mb-4">主な機能</h2>
           <Row>
             <Col md={4} className="mb-4">
-              <Card className="h-100">
-                <Card.Body>
-                  <Image src="/task.jpg" alt="タスク"/>
-                  <Card.Title className="fw-bold mt-3">簡単なタスク管理</Card.Title>
-                  <Card.Text>
-                    直感的なインターフェースで、誰でも簡単にタスクを追加、編集、削除できます。
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+              <div className="h-100 p-4 border rounded shadow-sm">
+                <div style={{ position: 'relative', height: '150px' }}>
+                  <Image src="/task.jpg" fill alt="タスク" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
+                </div>
+                <h5 className="fw-bold mt-3">簡単なタスク管理</h5>
+                <p className="mt-2">
+                  直感的なインターフェースで、誰でも簡単にタスクを追加、編集、削除できます。
+                </p>
+              </div>
             </Col>
             <Col md={4} className="mb-4">
-              <Card className="h-100">
-                <Card.Body>
-                  <Image src="/progress.jpg" alt="タスク"/>
-                  <Card.Title className="fw-bold mt-3">進捗状況を追跡</Card.Title>
-                  <Card.Text>
-                    タスクの完了状況をチェックボックスで管理し、進捗状況が一目でわかります。
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+              <div className="h-100 p-4 border rounded shadow-sm">
+                <div style={{ position: 'relative', height: '150px' }}>
+                  <Image src="/progress.jpg" fill alt="進捗" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
+                </div>
+                <h5 className="fw-bold mt-3">進捗状況を追跡</h5>
+                <p className="mt-2">
+                  タスクの完了状況をチェックボックスで管理し、進捗状況が一目でわかります。
+                </p>
+              </div>
             </Col>
             <Col md={4} className="mb-4">
-              <Card className="h-100">
-                <Card.Body>
-                  <Image src="/access.jpg" alt="タスク"/>
-                  <Card.Title className="fw-bold mt-3">いつでもどこでもアクセス</Card.Title>
-                  <Card.Text>
-                    モバイルデバイスにも対応しており、いつでもどこでもあなたのタスクにアクセスできます。
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+              <div className="h-100 p-4 border rounded shadow-sm">
+                <div style={{ position: 'relative', height: '150px' }}>
+                  <Image src="/access.jpg" fill alt="アクセス" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
+                </div>
+                <h5 className="fw-bold mt-3">いつでもどこでもアクセス</h5>
+                <p className="mt-2">
+                  モバイルデバイスにも対応しており、いつでもどこでもあなたのタスクにアクセスできます。
+                </p>
+              </div>
             </Col>
           </Row>
         </Col>
@@ -97,7 +96,7 @@ export default function LandingPage() {
       {/* 行動喚起セクション */}
       <Row className="text-center my-5 px-3">
         <Col>
-          <Card className="p-4 bg-light">
+          <div className="p-4 bg-light rounded shadow-sm">
             <h2>さあ、始めましょう！</h2>
             <p className="lead mt-3">
               今すぐ無料でアカウントを作成して、あなたの生産性を最大化しましょう。
@@ -107,7 +106,7 @@ export default function LandingPage() {
                 新規登録はこちら
               </Button>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
     </Container>

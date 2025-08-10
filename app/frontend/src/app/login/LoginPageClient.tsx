@@ -6,66 +6,104 @@ import Link from 'next/link';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
 
+//Formに入力するデータの型を定義
 interface FormValues {
   email?: string;
   password?: string;
 }
 
+//Formでエラーが出た場合のエラーメッセージの型を定義
 interface FormErrors {
   email?: string;
   password?: string;
 }
-
+/* 
+React.FC は、ReactコンポーネントをTypeScriptで定義する際に使われる型です。
+これは「Function Component（関数コンポーネント）」を意味し、コンポーネントのProps（プロパティ）と戻り値（React要素）を明確に定義するのに役立ちます。
+*/
 const LoginPageClient: React.FC = () => {
+  //ページの繊維に必要なルーターを定義した変数
   const router = useRouter();
+
+  //入力したデータを格納する変数
   const [formValues, setFormValues] = useState<FormValues>({});
+
+  //ネットワーク通信エラーなどのエラーをAlertで表示させるために必要なメッセージを格納する変数
   const [error, setError] = useState<string | null>(null);
+  
+  //入力したデータにエラーがあった場合、エラー内容を格納する変数
   const [validationErrors, setValidationErrors] = useState<FormErrors>({});
+
+  //ページ内の読み込みが完了したかどうかを判断するフラグ
   const [loading, setLoading] = useState<boolean>(false);
+  
+  //ログインの確認中かどうかを判断するフラグ
   const [isCheckingLogin, setIsCheckingLogin] = useState<boolean>(true);
+  
+  //AuthContextから変数を持ってくる
   const { isLoggedIn, isLoading, setIsLoggedIn } = useAuth();
 
   useEffect(() => {
+    //AuthContextの読み込みが終わった場合
     if (!isLoading) {
+      //ログインが完了した場合の処理
       if (isLoggedIn) {
+        //ページ遷移元の取得
         const redirectPath = localStorage.getItem('redirectPath');
+        //ページ遷移元があった場合はそのページに遷移させる
         if (redirectPath) {
           localStorage.removeItem('redirectPath');
           router.replace(redirectPath);
-        } else {
+        }
+        //ページ遷移元がない場合は、トップページに戻る
+        else {
           router.replace('/');
         }
-      } else {
+      } 
+      //ログインがされていない場合の処理
+      else {
+        //ログイン確認中フラグを解除
         setIsCheckingLogin(false);
       }
     }
   }, [isLoggedIn, isLoading, router]);
 
+  //テキストボックス入力時に実行される関数
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    //入力されたデータがある場合に、エラーメッセージを消す
     if (validationErrors[e.target.name as keyof FormErrors]) {
       setValidationErrors({
         ...validationErrors,
         [e.target.name]: undefined,
       });
     }
-
+    //入力されたデータをformValue変数にセット
     setFormValues({
       ...formValues,
       [e.target.name]: e.target.value,
     });
   };
 
+  //"新規登録はこちら"ボタンを押した際に、登録画面に移動
   const handRegister = () => {
     router.push('/register');
   };
-
+  //ログインボタンを押した際の処理
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    //フォームが勝手に送信されないようにする
     e.preventDefault();
+    //読み込み中フラグをtrueにする
     setLoading(true);
+    //エラーメッセージの初期化
     setError(null);
+    //入力したデータのエラーメッセージを初期化する
     setValidationErrors({});
 
+    //この関数のみで使用する入力したデータのエラーメッセージ格納用変数
     const errors: FormErrors = {};
+
+    //入力されたデータに誤りがあった場合、エラーメッセージを変数に代入
     if (!formValues.email) {
       errors.email = 'メールアドレスを入力してください。';
     }
@@ -83,7 +121,8 @@ const LoginPageClient: React.FC = () => {
       const response = await fetch('/backend/login.php', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
+          'Content-Type': 'application/json', //JSON形式で送信
         },
         body: JSON.stringify(formValues),
         credentials: 'include',

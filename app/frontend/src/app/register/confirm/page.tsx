@@ -44,6 +44,7 @@ const Confirm: React.FC = () => {
       const response = await fetch('/backend/register/send-register-email.php', {
         method: 'POST',
         headers: {
+          'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(registrationData), 

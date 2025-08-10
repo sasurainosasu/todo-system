@@ -1,7 +1,12 @@
 <?php
-// php-api/api/get_items.php
+
 
 session_start();
+
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    exit();
+} 
 
 // CORS（Cross-Origin Resource Sharing）ヘッダーを設定
 // 本番環境ではセキュリティのため、許可するオリジンを限定することを推奨

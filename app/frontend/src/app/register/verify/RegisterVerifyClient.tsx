@@ -24,6 +24,7 @@ const RegisterVerifyClient: React.FC = () => {
         const response = await fetch('/backend/register/verify-registration.php', {
           method: 'POST',
           headers: {
+            'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ token }),

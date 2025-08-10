@@ -1,5 +1,11 @@
 <?php
 
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    exit();
+} 
+
+
 include("class/Database.php");
 
 // セッションを開始
@@ -19,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-$email = $input['email'] ?? '';
-$password = $input['password'] ?? '';
+$email = htmlspecialchars($input['email'], ENT_QUOTES, 'UTF-8') ?? '';
+$password = htmlspecialchars($input['password'], ENT_QUOTES, 'UTF-8')  ?? '';
 
 
 

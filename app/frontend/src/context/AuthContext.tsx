@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const response = await fetch(LOGIN_STATUS_API_URL, {
           method: 'POST',
           headers: {
+            'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
             'Content-Type': 'application/json',
           },
           credentials: 'include',

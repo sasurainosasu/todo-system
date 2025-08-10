@@ -1,4 +1,10 @@
 <?php
+
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    exit();
+} 
+
 // セッションを開始
 session_start();
 

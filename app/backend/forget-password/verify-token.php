@@ -8,7 +8,7 @@ header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // GETデータの取得
-$token = $_GET['token'] ?? '';
+$token = htmlspecialchars($_GET['token'], ENT_QUOTES, 'UTF-8') ?? '';
 
 if (empty($token)) {
     echo json_encode(["success" => false, "error" => "トークンが提供されていません。"]);
@@ -19,8 +19,14 @@ try {
     $db = new Database();
 
     // トークンの検証
+    $select_array = [
+        "where" => [
+            "reset_token" => $token,
+            "reset_token_expires_at" => [">",date("Y-m-d H:i:s")]
+        ]
+    ];
 
-    $results = $db->query("SELECT id FROM users WHERE reset_token = :token AND reset_token_expires_at > '".date("Y-m-d H:i:s")."'",["token" => $token]);
+    $results = $db->selectCompare("users",$select_array);
 
     if (count($results) > 0) {
         // トークンが有効な場合

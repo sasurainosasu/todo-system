@@ -76,7 +76,13 @@ export default function Home() {
     const apiUrl = '/backend/contact-list.php';
     async function fetchItems() {
       try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
+          'Content-Type': 'application/json',
+        }
+      });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

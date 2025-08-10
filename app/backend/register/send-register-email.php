@@ -1,5 +1,10 @@
 <?php
 
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    exit();
+} 
+
 include_once("../class/Database.php");
 include_once("../class/MailService.php");
 
@@ -16,6 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
+
+//セキュリティ対策で特殊文字をエスケープする
+foreach($input as $key => $value){
+    $input[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+}
 
 $name = $input['name'] ?? '';
 $email = $input['email'] ?? '';

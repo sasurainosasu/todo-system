@@ -1,5 +1,10 @@
 <?php
 
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    exit();
+} 
+
 include_once("../class/Database.php");
 
 header('Content-Type: application/json');
@@ -15,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$token = $input['token'] ?? '';
+$token = htmlspecialchars($input['token'], ENT_QUOTES, 'UTF-8') ?? '';
 
 if (empty($token)) {
     http_response_code(400);
@@ -28,8 +33,15 @@ try {
     $db = new Database();
 
     // トークンを検証し、仮登録情報を取得
-    $results = $db->query("SELECT * FROM temporary_users WHERE token = :token AND expires_at > '".  date("Y-m-d H:i:s")."'",["token" => $token]);
+    $select_array = [
+        "where" => [
+            "token" => $token,
+            "expires_at" => [">",date("Y-m-d H:i:s")]
+        ]
+    ];
 
+    $results =  $db->selectCompare("temporary_users",$select_array);
+    
     if (count($results) == 0) {
         http_response_code(400);
         echo json_encode(['message' => '無効な認証トークン、または有効期限が切れています。']);

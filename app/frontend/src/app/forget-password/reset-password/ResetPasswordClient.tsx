@@ -1,16 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent} from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Form, Button, Alert, Container, Row, Col, Spinner } from 'react-bootstrap';
+
+// フォームの入力値の型を定義
+interface FormValues {
+  password: string;
+  confirmPassword: string;
+}
+
+// バリデーションエラーの型を定義
+interface FormErrors {
+  password?: string;
+  confirmPassword?: string;
+}
 
 const ResetPasswordClient = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [formValues, setFormValues] = useState<FormValues>({
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+
   const [message, setMessage] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -22,12 +38,10 @@ const ResetPasswordClient = () => {
       const verifyToken = async () => {
         try {
           const response = await fetch(`/backend/forget-password/verify-token.php?token=${token}`);
-
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'トークンが無効です。');
           }
-
           const data = await response.json();
           if (data.success) {
             setIsTokenValid(true);
@@ -51,24 +65,61 @@ const ResetPasswordClient = () => {
     }
   }, [token]);
 
+  // 修正箇所: handleChange 関数
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormValues({
+      ...formValues,
+      [name]: value,
+    });
+    
+    // 入力があったフィールドのエラーをクリア
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        [name]: undefined,
+      }));
+    }
+  };
+
+  const validate = (values: FormValues): FormErrors => {
+    const newErrors: FormErrors = {};
+    if (!values.password) {
+      newErrors.password = 'パスワードは必須項目です';
+    } else if (values.password.length < 6) {
+      newErrors.password = 'パスワードは6文字以上で入力してください';
+    }
+    if (!values.confirmPassword) {
+      newErrors.confirmPassword = '確認用パスワードは必須項目です';
+    } else if (values.password !== values.confirmPassword) {
+      newErrors.confirmPassword = 'パスワードが一致しません';
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError('パスワードが一致しません。');
-      return;
-    }
 
     setIsLoading(true);
     setMessage('');
     setError('');
 
+    const validationErrors = validate(formValues);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setIsLoading(false);
+      return;
+    }
+    setErrors({});
+
     try {
       const response = await fetch('/backend/forget-password/reset-password.php', {
         method: 'POST',
         headers: {
+          'X-Requested-With': 'xmlhttprequest',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ token, password: formValues.password }),
       });
 
       if (!response.ok) {
@@ -132,22 +183,37 @@ const ResetPasswordClient = () => {
                   <Form.Label>新しいパスワード</Form.Label>
                   <Form.Control
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
+                    name="password"
+                    value={formValues.password}
+                    onChange={handleChange}
+                    isInvalid={!!errors.password}
                   />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password}
+                  </Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formConfirmPassword">
                   <Form.Label>新しいパスワード（確認）</Form.Label>
                   <Form.Control
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
+                    name="confirmPassword"
+                    value={formValues.confirmPassword}
+                    onChange={handleChange}
+                    isInvalid={!!errors.confirmPassword}
                   />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.confirmPassword}
+                  </Form.Control.Feedback>
                 </Form.Group>
                 <Button variant="primary" className="w-100" type="submit" disabled={isLoading}>
-                  {isLoading ? '更新中...' : 'パスワードを更新'}
+                  {isLoading ? (
+                    <>
+                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                      <span className="ms-2">更新中...</span>
+                    </>
+                  ) : (
+                    'パスワードを更新'
+                  )}
                 </Button>
               </Form>
             )}
