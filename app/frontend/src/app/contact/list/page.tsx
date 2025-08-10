@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect, createElement } from 'react';
-import Container from 'react-bootstrap/Container';
-import Spinner from 'react-bootstrap/Spinner';
-import Alert from 'react-bootstrap/Alert';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Pagination from 'react-bootstrap/Pagination';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
+import {Container, 
+  Spinner,
+  Alert,
+  Row,
+  Col,
+  Pagination, 
+  Modal,
+  Button,
+  Card }from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -25,7 +25,7 @@ interface Item {
 // タグ名（'div' または 'span'）を受け取り、動的に要素を生成します
 const ClientSideDateDisplay = ({ dateString, as }: { dateString: string; as: 'div' | 'span' }) => {
   const [formattedDate, setFormattedDate] = useState('');
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn } = useAuth();
   const router = useRouter();
 
 
@@ -137,7 +137,7 @@ export default function Home() {
     setCurrentPage(pageNumber);
   };
 
-  const paginationItems = [];
+  const paginationItems:React.ReactNode[] = [] ;
   for (let number = 1; number <= totalPages; number++) {
     paginationItems.push(
       <Pagination.Item key={number} active={number === currentPage} onClick={() => handlePageChange(number)}>

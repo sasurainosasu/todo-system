@@ -50,29 +50,39 @@ try {
         exit();
 }
 
-
-// ユーザー名とパスワードの検証
-if(password_verify($password, $results[0]['password'])){
-    // 認証成功
-    $_SESSION['user_id'] = $results[0]['id']; // セッションにユーザーIDを保存
-    $_SESSION['email'] = $results[0]['email'];
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'ログインに成功しました。',
-        'user' => [
-            'id' =>  $_SESSION['user_id'],
-            'name' => $results[0]['name'],
-            'email' => $results[0]['email']
-        ]
-    ]);
-} else {
-    // 認証失敗
+if(count($results) == 0){
+        // 認証失敗
    // http_response_code(401);
     echo json_encode([
         'success' => false,
         'message' => 'ユーザー名またはパスワードが間違っています。'
     ]);
 }
+else{
 
+
+    // ユーザー名とパスワードの検証
+    if(password_verify($password, $results[0]['password'])){
+        // 認証成功
+        $_SESSION['user_id'] = $results[0]['id']; // セッションにユーザーIDを保存
+        $_SESSION['email'] = $results[0]['email'];
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'ログインに成功しました。',
+            'user' => [
+                'id' =>  $_SESSION['user_id'],
+                'name' => $results[0]['name'],
+                'email' => $results[0]['email']
+            ]
+        ]);
+    } else {
+        // 認証失敗
+    // http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'message' => 'ユーザー名またはパスワードが間違っています。'
+        ]);
+    }
+}
 ?>

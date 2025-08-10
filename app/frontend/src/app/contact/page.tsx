@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
-import { Container, Form, Button, Modal } from 'react-bootstrap';
+import { Container, Form, Button, Spinner } from 'react-bootstrap';
 import type { FormData } from '../../types/contact';
 import ContactSteps from '../../components/ContactSteps';
 
@@ -13,7 +13,7 @@ const ContactInputPage: React.FC = () => {
     message: '',
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -61,7 +61,7 @@ const ContactInputPage: React.FC = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
+      setLoading(true);
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('contactFormData', JSON.stringify(formData));
       }
@@ -119,20 +119,24 @@ const ContactInputPage: React.FC = () => {
           </Form.Control.Feedback>
         </Form.Group>
         <div className="w-100 text-center">
-          <Button variant="primary" type="submit" disabled={isLoading}>
-            確認画面へ
+          <Button variant="primary" type="submit" disabled={loading}>
+             {loading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  <span className="ms-2">送信中...</span>
+                </>
+                ) : (
+                  '確認画面へ'
+                )}
           </Button>
         </div>
       </Form>
-
-      <Modal show={isLoading} centered backdrop="static" keyboard={false}>
-        <Modal.Body className="text-center">
-          <p>通信中...</p>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </Modal.Body>
-      </Modal>
     </Container>
   );
 };

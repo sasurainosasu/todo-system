@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState<string>('');
@@ -10,7 +11,7 @@ const ForgotPasswordPage = () => {
     const [error, setError] = useState<string>('');
     const [validationErrors, setValidationErrors] = useState<{ email?: string }>({});
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [validated, setValidated] = useState<boolean>(false);
+           const router = useRouter();
 
     const checkEmail = async () => {
         try {
@@ -33,9 +34,15 @@ const ForgotPasswordPage = () => {
                 setValidationErrors({ email: data.message });
             }
             return data.success;
-        } catch (err: any) {
-            setError(err.message || 'ネットワークエラーが発生しました。');
-            return false;
+        } catch (err:unknown) {
+              if (err instanceof Error) {
+                    setError(err.message || 'ネットワークエラーが発生しました。');             
+                } else {
+                    // Errorオブジェクトではない場合の処理
+                    setError('予期せぬエラーが発生しました。');
+                }
+                return false;
+
         } finally {
             setIsLoading(false);
         }
@@ -43,10 +50,10 @@ const ForgotPasswordPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setValidated(true);
         setMessage('');
         setError('');
         setValidationErrors({});
+ 
 
         if (email.trim() === '') {
             setValidationErrors({ email: 'メールアドレスを入力してください。' });
@@ -76,8 +83,14 @@ const ForgotPasswordPage = () => {
                 // 成功時はフォームをリセット
                 setEmail('');
 
-            } catch (err: any) {
-                setError(err.message || 'ネットワークエラーが発生しました。');
+            } catch (err:unknown) {
+              if (err instanceof Error) {
+                    setError(err.message || 'ネットワークエラーが発生しました。');
+                } else {
+                    // Errorオブジェクトではない場合の処理
+                    setError('予期せぬエラーが発生しました。');
+                }
+                 return false;
             } finally {
                 setIsLoading(false);
             }
@@ -102,7 +115,7 @@ const ForgotPasswordPage = () => {
                             </Alert>
                             <div className="mt-3">
                                 <Link href="/login" passHref legacyBehavior>
-                                    <Button variant="primary">ログイン画面に戻る</Button>
+                                   ログイン画面に戻る
                                 </Link>
                             </div>
                         </div>

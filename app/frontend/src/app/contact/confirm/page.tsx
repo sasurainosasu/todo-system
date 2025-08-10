@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Container, Card, Button, Alert, Spinner } from 'react-bootstrap';
 import type { FormData } from '../../../types/contact';
 import ContactSteps from '../../../components/ContactSteps';
-import LoadingOverlay from '../../../components/LoadingOverlay'; // 追加
 
 const ContactConfirmPage: React.FC = () => {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingOverlay, setIsLoadingOverlay] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -25,7 +24,7 @@ const ContactConfirmPage: React.FC = () => {
   }, [router]);
 
   const handleBack = () => {
-    setIsLoadingOverlay(true);
+    setLoading(true);
     setTimeout(() => {
       router.push('/contact');
     }, 300);
@@ -33,7 +32,7 @@ const ContactConfirmPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData) return;
-    setIsLoadingOverlay(true);
+    setLoading(true);
     setError(null);
 
     try {
@@ -99,16 +98,27 @@ const ContactConfirmPage: React.FC = () => {
       {error && <Alert variant="danger">{error}</Alert>}
 
       <div className="d-flex justify-content-center">
-        <Button className="mx-2" variant="primary" onClick={handleSubmit} disabled={isLoadingOverlay}>
-          送信
+        <Button className="mx-2" variant="primary" onClick={handleSubmit} disabled={loading}>
+             {loading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  <span className="ms-2">送信中...</span>
+                </>
+                ) : (
+                  '送信'
+                )}
         </Button>
-        <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={isLoadingOverlay}>
+        <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={loading}>
           戻る
         </Button>
       </div>
       
-      {/* 外部コンポーネントとして通信中オーバーレイを呼び出す */}
-      <LoadingOverlay show={isLoadingOverlay} />
 
     </Container>
   );

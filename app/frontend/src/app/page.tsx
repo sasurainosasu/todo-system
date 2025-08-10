@@ -2,6 +2,8 @@
 
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { useRouter } from 'next/navigation'; // useRouterをインポート
+import  Image  from 'next/image';
+
 
 export default function LandingPage() {
   const router = useRouter();
@@ -56,7 +58,7 @@ export default function LandingPage() {
             <Col md={4} className="mb-4">
               <Card className="h-100">
                 <Card.Body>
-                  <img src="/task.jpg"/>
+                  <Image src="/task.jpg" alt="タスク"/>
                   <Card.Title className="fw-bold mt-3">簡単なタスク管理</Card.Title>
                   <Card.Text>
                     直感的なインターフェースで、誰でも簡単にタスクを追加、編集、削除できます。
@@ -67,7 +69,7 @@ export default function LandingPage() {
             <Col md={4} className="mb-4">
               <Card className="h-100">
                 <Card.Body>
-                  <img src="/progress.jpg"/>
+                  <Image src="/progress.jpg" alt="タスク"/>
                   <Card.Title className="fw-bold mt-3">進捗状況を追跡</Card.Title>
                   <Card.Text>
                     タスクの完了状況をチェックボックスで管理し、進捗状況が一目でわかります。
@@ -78,7 +80,7 @@ export default function LandingPage() {
             <Col md={4} className="mb-4">
               <Card className="h-100">
                 <Card.Body>
-                  <img src="/access.jpg"/>
+                  <Image src="/access.jpg" alt="タスク"/>
                   <Card.Title className="fw-bold mt-3">いつでもどこでもアクセス</Card.Title>
                   <Card.Text>
                     モバイルデバイスにも対応しており、いつでもどこでもあなたのタスクにアクセスできます。
