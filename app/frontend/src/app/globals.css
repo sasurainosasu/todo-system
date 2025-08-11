@@ -23,4 +23,21 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* Flexboxを有効にし、子要素を縦方向に配置 */
+  display: flex;
+  flex-direction: column;
+  /* 最小の高さをビューポートの高さに設定 */
+  min-height: 100vh;
 }
+
+html, body {
+  /* ビューポート全体の高さを占有 */
+  height: 100%;
+}
+
+#__next {
+  min-height: 100vh; /* ビューポート全体の高さを確保 */
+  display: flex;
+  flex-direction: column;
+}
+

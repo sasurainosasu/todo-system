@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono  } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import 'bootstrap/dist/css/bootstrap.min.css'; // BootstrapのCSSを読み込む
+import 'bootstrap/dist/css/bootstrap.min.css';
 import AppNavbar from '../components/AppNavbar';
-import { AuthProvider } from '@/context/AuthContext'; // AuthProviderをインポート
-
+import Footer from '../components/Footer';
+import { AuthProvider } from '@/context/AuthContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,9 +32,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider> {/* childrenとAppNavbarをProviderで囲む */}
+        <AuthProvider>
           <AppNavbar />
-          {children}
+          {/* ここでメインコンテンツをラッパーで囲み、flex-growを適用する */}
+          <main style={{ flexGrow: 1 }}>
+            {children}
+          </main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>

@@ -142,9 +142,8 @@ const LoginPageClient: React.FC = () => {
       } else {
         setError(data.message || 'ログインに失敗しました。');
       }
-    } catch (err) {
+    } catch{
       setError('サーバーとの通信中にエラーが発生しました。');
-      console.error('API Error:', err);
     } finally {
       setLoading(false);
     }

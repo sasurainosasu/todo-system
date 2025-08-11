@@ -9,6 +9,7 @@ COPY ./app/frontend/package*.json ./
 
 # 依存パッケージをインストール
 RUN npm install
+RUN NODE_OPTIONS="--max-old-space-size=4096"
 
 # アプリケーションのソースコードをすべてコピー
 COPY ./app/frontend/ ./
