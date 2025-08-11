@@ -11,7 +11,8 @@ import {Container,
   Button,
   Card }from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname  } from 'next/navigation';
+import Cookies from 'js-cookie'; // js-cookieをインポート
 
 // PHPから取得するデータの型を定義
 interface Item {
@@ -61,17 +62,20 @@ export default function Home() {
 
   const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
+  
   useEffect(() => {
     // 認証情報がロード中なら何もしない
     if (isAuthLoading) {
       return;
     }
-    // ログインしていなければログインページにリダイレクト
+
+    Cookies.set('redirectPath', pathname, { expires: 7 });
     if (!isLoggedIn) {
       router.push('/login');
-      return;
     }
+
 
     const apiUrl = '/backend/contact-list.php';
     async function fetchItems() {
@@ -100,7 +104,7 @@ export default function Home() {
       }
     }
     fetchItems();
-  }, [isLoggedIn, isAuthLoading, router]); // 依存配列にisLoggedIn, isAuthLoading, routerを追加
+  }, [isLoggedIn, isAuthLoading, router,pathname]); // 依存配列にisLoggedIn, isAuthLoading, routerを追加
 
   // 認証情報のロード中、またはデータ取得中
   if (isAuthLoading || isLoading) {

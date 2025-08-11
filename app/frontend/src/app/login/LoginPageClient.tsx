@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
+import Cookies from 'js-cookie'; // js-cookieをインポート
 
 //Formに入力するデータの型を定義
 interface FormValues {
@@ -17,12 +18,9 @@ interface FormErrors {
   email?: string;
   password?: string;
 }
-/* 
-React.FC は、ReactコンポーネントをTypeScriptで定義する際に使われる型です。
-これは「Function Component（関数コンポーネント）」を意味し、コンポーネントのProps（プロパティ）と戻り値（React要素）を明確に定義するのに役立ちます。
-*/
+
 const LoginPageClient: React.FC = () => {
-  //ページの繊維に必要なルーターを定義した変数
+  //ページの遷移に必要なルーターを定義した変数
   const router = useRouter();
 
   //入力したデータを格納する変数
@@ -30,36 +28,36 @@ const LoginPageClient: React.FC = () => {
 
   //ネットワーク通信エラーなどのエラーをAlertで表示させるために必要なメッセージを格納する変数
   const [error, setError] = useState<string | null>(null);
-  
+
   //入力したデータにエラーがあった場合、エラー内容を格納する変数
   const [validationErrors, setValidationErrors] = useState<FormErrors>({});
 
   //ページ内の読み込みが完了したかどうかを判断するフラグ
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   //ログインの確認中かどうかを判断するフラグ
   const [isCheckingLogin, setIsCheckingLogin] = useState<boolean>(true);
-  
+
   //AuthContextから変数を持ってくる
   const { isLoggedIn, isLoading, setIsLoggedIn } = useAuth();
 
+  //直接URLに/loginと入力された場合の処理
   useEffect(() => {
     //AuthContextの読み込みが終わった場合
     if (!isLoading) {
-      //ログインが完了した場合の処理
+      //既にログインしている場合の処理
       if (isLoggedIn) {
         //ページ遷移元の取得
-        const redirectPath = localStorage.getItem('redirectPath');
+        const redirectPath = Cookies.get('redirectPath'); // localStorageからCookiesに変更
         //ページ遷移元があった場合はそのページに遷移させる
         if (redirectPath) {
-          localStorage.removeItem('redirectPath');
           router.replace(redirectPath);
         }
         //ページ遷移元がない場合は、トップページに戻る
         else {
           router.replace('/');
         }
-      } 
+      }
       //ログインがされていない場合の処理
       else {
         //ログイン確認中フラグを解除
@@ -70,7 +68,6 @@ const LoginPageClient: React.FC = () => {
 
   //テキストボックス入力時に実行される関数
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
     //入力されたデータがある場合に、エラーメッセージを消す
     if (validationErrors[e.target.name as keyof FormErrors]) {
       setValidationErrors({
@@ -121,8 +118,8 @@ const LoginPageClient: React.FC = () => {
       const response = await fetch('/backend/login.php', {
         method: 'POST',
         headers: {
-          'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
-          'Content-Type': 'application/json', //JSON形式で送信
+          'X-Requested-With': 'xmlhttprequest',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(formValues),
         credentials: 'include',
@@ -132,17 +129,17 @@ const LoginPageClient: React.FC = () => {
 
       if (response.ok && data.success) {
         setIsLoggedIn(true);
-        const redirectPath = sessionStorage.getItem('redirectPath');
+        const redirectPath = Cookies.get('redirectPath'); // sessionStorageからCookiesに変更
         if (redirectPath) {
           router.replace(redirectPath);
-          sessionStorage.removeItem('redirectPath');
+
         } else {
           router.replace('/');
         }
       } else {
         setError(data.message || 'ログインに失敗しました。');
       }
-    } catch{
+    } catch {
       setError('サーバーとの通信中にエラーが発生しました。');
     } finally {
       setLoading(false);
@@ -223,7 +220,8 @@ const LoginPageClient: React.FC = () => {
                   )}
                 </Button>
               </Form>
-              <h5 className="text-center mt-2">パスワードを忘れた方は 
+              <h5 className="text-center mt-2">
+                パスワードを忘れた方は{' '}
                 <Link href="/forget-password">こちら</Link>
               </h5>
             </div>

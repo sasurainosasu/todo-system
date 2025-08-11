@@ -11,6 +11,7 @@ import {
 } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
+import Cookies from 'js-cookie'; // js-cookieをインポート
 
 // @hello-pangea/dnd ライブラリから必要な型をインポート
 import {
@@ -63,8 +64,8 @@ export default function TodoListContainer() {
         } else {
           throw new Error('サーバーからのデータ形式が不正です。');
         }
-      } catch (e: any) {
-        setError(e.message || 'タスクの取得に失敗しました。');
+      } catch {
+        setError('タスクの取得に失敗しました。');
       } finally {
         setLoading(false); // 読み込み完了
       }
@@ -78,18 +79,12 @@ export default function TodoListContainer() {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    localStorage.setItem('redirectPath', pathname);
+    Cookies.set('redirectPath', pathname, { expires: 7 });
     if (isLoading) return;
     if (!isLoggedIn) {
       router.push('/login');
     }
   }, [isLoggedIn, isLoading, router, pathname]);
-
-  useEffect(() => {
-    if (isLoggedIn && !loading) {
-      localStorage.setItem('todos', JSON.stringify(todos));
-    }
-  }, [todos, isLoggedIn, loading]);
 
   const handleAddTodo = () => {
     if (input.trim() === '') return;
@@ -172,7 +167,7 @@ export default function TodoListContainer() {
   // ログインしていない場合
   if (!isLoggedIn) {
     return (
-      <h1 className="text-center">このページは会員登録された方のみ閲覧可能です。</h1>
+      <h2 className="text-center">このページは会員登録された方のみ閲覧可能です。</h2>
     );
   }
 
