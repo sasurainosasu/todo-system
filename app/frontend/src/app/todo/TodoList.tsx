@@ -89,7 +89,7 @@ export default function TodoListContainer() {
   const handleAddTodo = () => {
     if (input.trim() === '') return;
     const newTodo: Todo = {
-      id: Date.now(),
+      id: Date.now().toString(),
       text: input,
       completed: false,
     };
@@ -125,7 +125,7 @@ export default function TodoListContainer() {
     }
   };
 
-  const handleToggleTodo = (id: number) => {
+  const handleToggleTodo = (id: string) => {
     setTodos(
       todos.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
@@ -133,7 +133,7 @@ export default function TodoListContainer() {
     );
   };
 
-  const handleDeleteTodo = (id: number) => {
+  const handleDeleteTodo = (id: string) => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
 
