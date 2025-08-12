@@ -64,7 +64,7 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
 
-  
+
   useEffect(() => {
     // 認証情報がロード中なら何もしない
     if (isAuthLoading) {
@@ -77,7 +77,7 @@ export default function Home() {
     }
 
 
-    const apiUrl = '/backend/contact-list.php';
+    const apiUrl = '/backend/contact/contact-list.php';
     async function fetchItems() {
       try {
         const response = await fetch(apiUrl, {
@@ -168,7 +168,7 @@ export default function Home() {
 
   const contact_list = () => {
     return(
-      <>
+      <div className="mb-3">
        <Row className="mb-4">
         <Col>
           <h1 className="text-center">
@@ -273,7 +273,7 @@ export default function Home() {
           </Modal.Footer>
         </Modal>
       )}
-      </>
+      </div>
 
     );
   }

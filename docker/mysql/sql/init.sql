@@ -132,7 +132,7 @@ ALTER TABLE `users`
 
 
 CREATE TABLE `todos` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `text` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `completed` TINYINT(1) NOT NULL DEFAULT 0,
   `user_id` INT NOT NULL,

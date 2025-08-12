@@ -1,26 +1,27 @@
 <?php
 
-//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
-if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-    exit();
-} 
-
-
-include("class/Database.php");
-
 // セッションを開始
 session_start();
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:3000'); // Next.jsのオリジンを明示
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Access-Control-Allow-Credentials: true'); // クッキー（セッションID）の送受信を許可
-
-// OPTIONSリクエストへの対応
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    session_destroy();
     exit();
+} 
+
+//クラスの読み取り
+include("class/Database.php");
+include("class/HeaderManager.php");
+
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
+
+// HTTPメソッドがPOSTか確認
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+    exit;
 }
 
 $input = json_decode(file_get_contents('php://input'), true);

@@ -9,7 +9,7 @@ export default function Footer() {
       <Container>
         <Row className="text-center">
           <Col>
-            <p>&copy; {currentYear} My To Do App. All rights reserved.</p>
+            <p>&copy; {currentYear} Sunfperi. All rights reserved.</p>
           </Col>
         </Row>
       </Container>

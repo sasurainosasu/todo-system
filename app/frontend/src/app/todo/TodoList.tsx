@@ -25,7 +25,7 @@ import {
 
 // Todoアイテムの型を定義
 interface Todo {
-  id: number;
+  id: string;
   text: string;
   completed: boolean;
 }

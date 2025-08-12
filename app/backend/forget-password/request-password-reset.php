@@ -50,10 +50,8 @@ try {
         $db->begin();
         $db->update("users",$update_set_array,["email" => $email]);
 
-        $base_url = $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'];
-
         //メールサービスクラスの宣言
-        $mail_service = new MailService(getenv("FROM_EMAIL"),$base_url);
+        $mail_service = new MailService(getenv("FROM_EMAIL"));
         
         if ($mail_service->sendPasswordResetEmail($email,$token)) {
             $db->commit();

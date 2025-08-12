@@ -7,9 +7,9 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
 
 // CORSヘッダーを設定
 // Next.jsアプリケーションのオリジンに合わせてURLを変更してください
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
 
 // HTTPメソッドがPOSTか確認
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

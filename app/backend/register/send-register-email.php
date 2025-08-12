@@ -75,10 +75,8 @@ try {
     // 登録確認メールを送信
     $subject = "ToDo管理システム - ユーザー登録のご確認";
 
-    //プロトコル・ドメイン名の宣言
-    $base_url = $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'];
 
-    $mail_service = new MailService(getenv("FROM_EMAIL"),$base_url);
+    $mail_service = new MailService(getenv("FROM_EMAIL"));
 
     if ($mail_service->sendRegistrationEmail($email,$name,$token)) {
         //メール送信が完了したタイミングでコミットする

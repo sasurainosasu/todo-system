@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $completed = 0;
                 if($data[$i]["completed"] == true)$completed = 1;
                 $insert_array = [
+                        "id" => sprintf('%017d', $_SESSION['user_id']).sprintf('%03d', $i),
                         "text" => $data[$i]["text"],
                         "completed" => $completed,
                         "user_id" => $_SESSION['user_id'],
