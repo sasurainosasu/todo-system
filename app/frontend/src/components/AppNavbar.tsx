@@ -65,9 +65,11 @@ const AppNavbar: React.FC = () => {
               // ログイン時のメニュー
               <>
                 <NavDropdown title="マイページ" id="basic-nav-dropdown">
+                  {/*
                   <NavDropdown.Item as={Link} href="/profile">
                     登録情報変更
                   </NavDropdown.Item>
+                  */}
                   <NavDropdown.Item as={Link} href="/contact/list">
                     お問い合わせ履歴
                   </NavDropdown.Item>
