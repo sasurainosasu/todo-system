@@ -36,7 +36,7 @@ const ContactConfirmPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('/backend/contact-insert.php', {
+      const response = await fetch('/backend/contact/contact-insert.php', {
         method: 'POST',
         headers: {
           'X-Requested-With': 'xmlhttprequest', //APIのURLを直接ブラウザで入力された場合の対処方法
@@ -54,8 +54,7 @@ const ContactConfirmPage: React.FC = () => {
         const errorData = await response.json();
         setError(`送信に失敗しました: ${errorData.message || '不明なエラー'}`);
       }
-    } catch (err) {
-      console.error('フォーム送信エラー:', err);
+    } catch{
       setError('ネットワークエラーが発生しました。時間を置いて再度お試しください。');
     } finally {
       //setIsLoadingOverlay(false); // 通信が完了したら必ずローディングを非表示にする
@@ -74,10 +73,11 @@ const ContactConfirmPage: React.FC = () => {
   }
 
   return (
-    <Container>
-      <h2 className="mt-5 text-center">お問い合わせ (確認)</h2>
+    <Container className="mb-5">
+      <h2 className="mt-5 text-center">お問い合わせ</h2>
       <ContactSteps />
-      <Card className="mb-3">
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Card className="mb-5">
         <Card.Body>
           <Card.Title>入力内容をご確認ください</Card.Title>
           <hr />
@@ -95,9 +95,6 @@ const ContactConfirmPage: React.FC = () => {
           </pre>
         </Card.Body>
       </Card>
-
-      {error && <Alert variant="danger">{error}</Alert>}
-
       <div className="d-flex justify-content-center">
         <Button className="mx-2" variant="primary" onClick={handleSubmit} disabled={loading}>
              {loading ? (

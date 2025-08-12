@@ -14,13 +14,13 @@ const ContactCompletePage: React.FC = () => {
 
   return (
     <Container>
-      <h2 className="mt-5 text-center">お問い合わせ (完了)</h2>
+      <h2 className="mt-5 text-center">お問い合わせ</h2>
       <ContactSteps /> {/* ここにステップインジケーターを配置 */}
       <Alert variant="success">お問い合わせ完了</Alert>
         <p>お問い合わせいただきありがとうございます。</p>
         <p>内容を確認後、担当者よりご連絡させていただきます。</p>
         <hr />
-        <div className="d-flex justify-content-center">
+        <div className="d-flex justify-content-center mt-4">
           <Button onClick={handleBackToTop} variant="success">
             トップページへ
           </Button>

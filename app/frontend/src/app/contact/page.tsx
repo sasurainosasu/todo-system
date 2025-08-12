@@ -71,8 +71,8 @@ const ContactInputPage: React.FC = () => {
   };
 
   return (
-    <Container>
-      <h2 className="mt-5 text-center">お問い合わせ (入力)</h2>
+    <Container className="mb-5">
+      <h2 className="mt-5 text-center">お問い合わせ</h2>
       <ContactSteps />
 
       <Form onSubmit={handleSubmit}>
@@ -104,7 +104,7 @@ const ContactInputPage: React.FC = () => {
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="formMessage">
+        <Form.Group className="mb-5" controlId="formMessage">
           <Form.Label>お問い合わせ内容:</Form.Label>
           <Form.Control
             as="textarea"
