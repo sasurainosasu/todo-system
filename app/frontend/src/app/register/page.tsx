@@ -251,10 +251,12 @@ const Register = () => {
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  <div className="d-grid gap-2">
+                  <div className="text-center">
                     <Button variant="primary" type="submit" disabled={isSubmitting || isEmailChecking || !!errors.email}>
                       {isSubmitting || isEmailChecking ? '確認中...' : '確認画面へ進む'}
                     </Button>
+                  </div>
+                  <div>
                     <h5 className="text-center mt-2">既に登録済みの方は
                       <Link href="/login">こちら</Link>
                     </h5>

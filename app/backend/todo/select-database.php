@@ -7,22 +7,13 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
     exit();
 } 
 
+//クラスの呼び出し
 include_once("../class/Database.php");
+include("../class/HeaderManager.php");
 
-
-// ヘッダー設定: CORS対策とJSONレスポンス
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *"); // 本番環境では特定のドメインに制限してください
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Accept");
-
-// OPTIONSリクエストの場合 (CORSプリフライトリクエスト)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    echo json_encode(['message' => '許可されていないメソッドです。POSTのみが許可されています。']);
-    exit();
-}
-
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders("GET");
 
 
 // POSTリクエストの場合のみ処理

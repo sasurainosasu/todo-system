@@ -5,12 +5,16 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
     exit();
 } 
 
-include_once("../class/Database.php");
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // 本番環境では特定のオリジンに制限する
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+//クラスの呼び出し
+include_once("../class/Database.php");
+include("../class/HeaderManager.php");
+
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
+
+
 
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

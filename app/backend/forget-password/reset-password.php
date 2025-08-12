@@ -5,12 +5,13 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
     exit();
 } 
 
+//クラスの呼び出し
 include_once("../class/Database.php");
+include("../class/HeaderManager.php");
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
 
 
 

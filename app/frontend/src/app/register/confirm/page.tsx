@@ -107,8 +107,8 @@ const Confirm: React.FC = () => {
                 </div>
               )}
 
-              <div className="d-grid gap-2 mt-4">
-                <Button variant="primary" size="lg" onClick={handleSend} disabled={isSending}>
+              <div className="d-flex justify-content-center">
+                <Button className="mx-2" variant="primary"  onClick={handleSend} disabled={isSending}>
                   {isSending ? (
                     <>
                       <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
@@ -118,7 +118,7 @@ const Confirm: React.FC = () => {
                     '送信'
                   )}
                 </Button>
-                <Button variant="secondary" size="lg" onClick={() => router.back()}>
+                <Button className="mx-2" variant="secondary" onClick={() => router.back()} disabled={isSending}>
                   戻る
                 </Button>
               </div>

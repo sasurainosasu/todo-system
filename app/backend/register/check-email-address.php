@@ -5,11 +5,13 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
     exit();
 } 
 
-header('Content-Type: application/json');
-
-
+//クラスの呼び出し
 include_once("../class/Database.php");
+include("../class/HeaderManager.php");
 
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
 
 // POSTリクエストかどうかを確認
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

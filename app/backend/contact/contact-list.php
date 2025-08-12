@@ -8,31 +8,18 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
     exit();
 } 
 
-// CORS（Cross-Origin Resource Sharing）ヘッダーを設定
-// 本番環境ではセキュリティのため、許可するオリジンを限定することを推奨
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Cache-Control: no-cache, must-revalidate");
+//クラスの呼び出し
+include("../class/Database.php");
+include("../class/HeaderManager.php");
 
-// セッションは使用していないため削除
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
 
-include_once("../class/Database.php");
 
-// データベース接続
 try {
+    //データベースクラスの宣言
     $db = new Database();
-
-} catch (Exception $e) {
-    // 接続エラーや環境変数未設定のエラーをJSONで返す
-    http_response_code(500);
-    echo json_encode(["error" => "Configuration or connection error."]);
-    // ログには詳細を記録
-    error_log("Database connection failed: " . $e->getMessage());
-    exit();
-}
-
-
-try {
     $results = array();
 
     if(isset($_SESSION["email"])){

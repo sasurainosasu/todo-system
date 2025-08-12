@@ -1,21 +1,23 @@
 <?php
 
+// セッションを開始
+session_start();
+
 //ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
 if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
     exit();
 } 
 
-// セッションを開始
-session_start();
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Next.jsのオリジンを明示
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Access-Control-Allow-Credentials: true');
+//クラスの呼び出し
+include("class/HeaderManager.php");
+
+//Header関数の呼び出し
+$headerManager = new HeaderManager();
+$headerManager->setHeaders();
 
 // OPTIONSリクエストへの対応
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(200);
     exit();
 }
