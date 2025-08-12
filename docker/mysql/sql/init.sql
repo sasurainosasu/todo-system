@@ -81,7 +81,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `created_at`) VALUES
-(1, '田中', 'sunf.peri.9208@benrinaheya.xyz', '$2y$10$CWjtEKMwWnbBH1MsoH5qH.uhPnc/ELv2/sqAOLNBIRfBQfTVLwxHC', '2025-08-08 08:06:59');
+(1, '田中', 'test@benrinaheya.xyz', '$2y$10$CWjtEKMwWnbBH1MsoH5qH.uhPnc/ELv2/sqAOLNBIRfBQfTVLwxHC', '2025-08-08 08:06:59');
 
 --
 -- ダンプしたテーブルのインデックス

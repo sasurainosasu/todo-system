@@ -25,7 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $results = $db->select("todos",["where" => ["user_id" => $_SESSION['user_id']]]);
             
             http_response_code(200);
-             echo json_encode($results);   
+            for($i = 0;$i < count($results);++$i){
+                $results[$i]["text"] = htmlspecialchars_decode($results[$i]["text"], ENT_QUOTES);
+            }
+            
+            echo json_encode($results);   
      } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
         echo json_encode(['message' => 'データベースへの書き込みに失敗しました。', 'error' => $e->getMessage()]);
