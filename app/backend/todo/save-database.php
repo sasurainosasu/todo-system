@@ -36,12 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             for($i = 0;$i < count($data);++$i){
 
-                $completed = 0;
-                if($data[$i]["completed"] == true)$completed = 1;
                 $insert_array = [
                         "id" => sprintf('%017d', $_SESSION['user_id']).sprintf('%03d', $i),
                         "text" => $data[$i]["text"],
-                        "completed" => $completed,
+                        "status" => $data[$i]["status"],
                         "user_id" => $_SESSION['user_id'],
                         "created_at" => date("Y-m-d H:i:s")
                 ];

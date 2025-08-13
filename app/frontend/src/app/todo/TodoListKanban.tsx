@@ -24,20 +24,31 @@ import {
 } from '@hello-pangea/dnd';
 
 // Todoアイテムの型を定義
+// statusプロパティを追加
 interface Todo {
   id: string;
   text: string;
-  completed: boolean;
+  status: '予定' | '進行中' | '完了'; // ステータスを追加
 }
+
+// Todoアイテムの型を定義
+interface Todo {
+  id: string;
+  text: string;
+  status: '予定' | '進行中' | '完了';
+}
+
+const getList = (status: '予定' | '進行中' | '完了', todos: Todo[]) =>
+  todos.filter((todo) => todo.status === status);
 
 export default function TodoListContainer() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [input, setInput] = useState('');
-  const [networkError, setNetworkError] = useState<string>("");
+  const [networkError, setNetworkError] = useState<string>('');
   const [saveDatabaseLoading, setSaveDatabaseLoading] = useState<boolean>(false);
-  const [saveDatabaseMessage, setSaveDatabaseMessage] = useState<string>("");
+  const [saveDatabaseMessage, setSaveDatabaseMessage] = useState<string>('');
 
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
@@ -59,12 +70,20 @@ export default function TodoListContainer() {
         }
         const data: unknown = await response.json();
 
+        // ここで取得したデータに`status`を追加
         if (Array.isArray(data)) {
+          /*
+          // completedプロパティがあればそれを基にstatusを設定
+          const transformedData = data.map((item: any) => ({
+            ...item,
+            status: item.completed ? '完了' : '予定',
+          }));
+          */
           setTodos(data);
         } else {
           throw new Error('サーバーからのデータ形式が不正です。');
         }
-      } catch {
+      } catch (e) {
         setError('タスクの取得に失敗しました。');
       } finally {
         setLoading(false); // 読み込み完了
@@ -91,7 +110,7 @@ export default function TodoListContainer() {
     const newTodo: Todo = {
       id: Date.now().toString(),
       text: input,
-      completed: false,
+      status: '予定', // 新しいタスクは'予定'ステータス
     };
     setTodos([...todos, newTodo]);
     setInput('');
@@ -99,8 +118,8 @@ export default function TodoListContainer() {
 
   const handleSaveDatabase = async () => {
     setSaveDatabaseLoading(true);
-    setSaveDatabaseMessage("");
-    setNetworkError("");
+    setSaveDatabaseMessage('');
+    setNetworkError('');
     try {
       const response = await fetch('/backend/todo/save-database.php', {
         method: 'POST',
@@ -114,7 +133,7 @@ export default function TodoListContainer() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setSaveDatabaseMessage("データベースに保存しました。");
+        setSaveDatabaseMessage('データベースに保存しました。');
       } else {
         setNetworkError(data.message || 'データベースへの保存に失敗しました。');
       }
@@ -125,28 +144,92 @@ export default function TodoListContainer() {
     }
   };
 
-  const handleToggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
-
   const handleDeleteTodo = (id: string) => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
 
   const onDragEnd = (result: DropResult) => {
-    if (!result.destination) {
+    const { source, destination } = result;
+
+    if (!destination) {
       return;
     }
 
-    const newTodos = Array.from(todos);
-    const [reorderedItem] = newTodos.splice(result.source.index, 1);
-    newTodos.splice(result.destination.index, 0, reorderedItem);
-    setTodos(newTodos);
+    // ドラッグ元とドラッグ先が同じ列
+    if (source.droppableId === destination.droppableId) {
+      const sourceList = getList(source.droppableId as '予定' | '進行中' | '完了', todos);
+      const newTodos = Array.from(todos);
+      const [movedItem] = sourceList.splice(source.index, 1);
+      sourceList.splice(destination.index, 0, movedItem);
+
+      const updatedTodos = newTodos.map(t => {
+        if (t.status === source.droppableId) {
+          const reorderedItem = sourceList.find(item => item.id === t.id);
+          return reorderedItem || t;
+        }
+        return t;
+      });
+      
+      setTodos(updatedTodos);
+    } else {
+      // ドラッグ元とドラッグ先が異なる列
+      const startStatus = source.droppableId as '予定' | '進行中' | '完了';
+      const endStatus = destination.droppableId as '予定' | '進行中' | '完了';
+
+      const updatedTodos = todos.map((todo) => {
+        if (todo.id === result.draggableId) {
+          return { ...todo, status: endStatus };
+        }
+        return todo;
+      });
+      setTodos(updatedTodos);
+    }
   };
+
+  const renderKanbanColumn = (status: '予定' | '進行中' | '完了', title: string, todosInStatus: Todo[]) => (
+    <div style={{ flex: 1, margin: '0 8px' }}>
+      <h3 className="text-center">{title}</h3>
+      <Droppable droppableId={status}>
+        {(provided: DroppableProvided) => (
+          <ListGroup
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            style={{ minHeight: '100px', backgroundColor: '#f4f5f7', padding: '8px', borderRadius: '4px' }}
+          >
+            {todosInStatus.map((todo, index) => (
+              <Draggable key={todo.id} draggableId={todo.id} index={index}>
+                {(provided: DraggableProvided) => (
+                  <ListGroup.Item
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className="d-flex justify-content-between align-items-center mb-2"
+                    style={{
+                      ...provided.draggableProps.style,
+                      backgroundColor: 'white',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      boxShadow: '0 1px 0 rgba(9,30,66,.25)',
+                    }}
+                  >
+                    <span>{todo.text}</span>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteTodo(todo.id)}
+                    >
+                      削除
+                    </Button>
+                  </ListGroup.Item>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </ListGroup>
+        )}
+      </Droppable>
+    </div>
+  );
 
   // ローディング中のスピナー
   if (loading) {
@@ -171,9 +254,13 @@ export default function TodoListContainer() {
     );
   }
 
+  const todosInPlans = getList('予定', todos);
+  const todosInProgress = getList('進行中', todos);
+  const todosInCompleted = getList('完了', todos);
+
   return (
     <div className="border border-radius p-3">
-      <h1 className="text-center mb-4">Todoリスト</h1>
+      <h1 className="text-center mb-4">カンバンボード</h1>
       {saveDatabaseMessage && <Alert variant="success">{saveDatabaseMessage}</Alert>}
       {networkError && <Alert variant="danger">{networkError}</Alert>}
 
@@ -193,58 +280,11 @@ export default function TodoListContainer() {
       </InputGroup>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="todos">
-          {(provided: DroppableProvided) => (
-            <ListGroup
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {todos.map((todo, index) => (
-                <Draggable
-                  key={todo.id}
-                  draggableId={String(todo.id)}
-                  index={index}
-                >
-                  {(provided: DraggableProvided) => (
-                    <ListGroup.Item
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className="d-flex justify-content-between align-items-center"
-                    >
-                      <Form.Check
-                        type="checkbox"
-                        checked={todo.completed}
-                        onChange={() => handleToggleTodo(todo.id)}
-                        label={
-                          <span
-                            style={{
-                              textDecoration: todo.completed ? 'line-through' : 'none',
-                              color: todo.completed ? '#888' : '#333',
-                              marginLeft: '10px',
-                            }}
-                          >
-                            {todo.text}
-                          </span>
-                        }
-                      />
-                      <div className="d-flex">
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleDeleteTodo(todo.id)}
-                        >
-                          削除
-                        </Button>
-                      </div>
-                    </ListGroup.Item>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </ListGroup>
-          )}
-        </Droppable>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {renderKanbanColumn('予定', '予定', todosInPlans)}
+          {renderKanbanColumn('進行中', '進行中', todosInProgress)}
+          {renderKanbanColumn('完了', '完了', todosInCompleted)}
+        </div>
       </DragDropContext>
 
       <div className="text-center mt-3">

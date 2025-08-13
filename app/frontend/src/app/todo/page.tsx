@@ -5,7 +5,7 @@ import {
 } from 'react-bootstrap';
 
 // クライアントコンポーネントを直接インポート
-import TodoListContainer from './TodoList';
+import TodoListContainer from './TodoListKanban';
 
 export default function TodoPage() {
   return (
