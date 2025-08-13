@@ -187,7 +187,7 @@ export default function TodoListContainer() {
   };
 
   const renderKanbanColumn = (status: '予定' | '進行中' | '完了', title: string, todosInStatus: Todo[]) => (
-    <div style={{ flex: 1, margin: '0 8px' }}>
+    <div className="border p-3" style={{ flex: 1, margin: '0 8px' }}>
       <h3 className="text-center">{title}</h3>
       <Droppable droppableId={status}>
         {(provided: DroppableProvided) => (
@@ -258,27 +258,39 @@ export default function TodoListContainer() {
   const todosInProgress = getList('進行中', todos);
   const todosInCompleted = getList('完了', todos);
 
+  const getKanbanTitleStyle = () => {
+    return {
+      borderLeft: '5px solid blue',
+      borderRight: '5px solid blue',
+      maxWidth:'600px',
+    };
+  };
+
   return (
-    <div className="border border-radius p-3">
-      <h1 className="text-center mb-4">カンバンボード</h1>
-      {saveDatabaseMessage && <Alert variant="success">{saveDatabaseMessage}</Alert>}
-      {networkError && <Alert variant="danger">{networkError}</Alert>}
+    <div className="border border-radius px-3 py-5">
+        <div style={getKanbanTitleStyle()} className="mx-auto text-center"> {/* 👈 このクラスを追加 */}
+          <h1 className="mb-4">
+            カンバンボード
+          </h1>
+        </div>
 
-      <InputGroup className="mb-3">
-        <Form.Control
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="新しいタスクを入力"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleAddTodo();
-          }}
-        />
-        <Button variant="primary" onClick={handleAddTodo}>
-          追加
-        </Button>
-      </InputGroup>
-
+        {saveDatabaseMessage && <Alert variant="success" className="mx-auto" style={{maxWidth:'600px',}}>{saveDatabaseMessage}</Alert>}
+        {networkError && <Alert variant="danger" className="mx-auto" style={{maxWidth:'600px',}}>{networkError}</Alert>}
+        <InputGroup className="my-2 mx-auto" style={{maxWidth:'600px',}}>
+          <Form.Control
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="新しいタスクを入力"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAddTodo();
+            }}
+          />
+          <Button variant="primary" onClick={handleAddTodo}>
+            追加
+          </Button>
+        </InputGroup>
+        <hr />
       <DragDropContext onDragEnd={onDragEnd}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {renderKanbanColumn('予定', '予定', todosInPlans)}
@@ -287,7 +299,7 @@ export default function TodoListContainer() {
         </div>
       </DragDropContext>
 
-      <div className="text-center mt-3">
+      <div className="text-center mt-5">
         <Button variant="primary" onClick={handleSaveDatabase} disabled={saveDatabaseLoading}>
           データベースに保存する
         </Button>
