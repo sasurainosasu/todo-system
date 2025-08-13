@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
  const [isLoggedIn, setIsLoggedIn] = useState(false);
  const [isLoading, setIsLoading] = useState(true);
 
-
  // ログイン状態をチェックするロジックをここに移す
  useEffect(() => {
   const checkLoginStatus = async () => {
