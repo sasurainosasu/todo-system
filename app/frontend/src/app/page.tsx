@@ -10,7 +10,7 @@ export default function LandingPage() {
         <Col>
           <div
             style={{
-              background: 'url("/top-hero.jpg") no-repeat center center/cover',
+              background: 'url("/img/top-hero.jpg") no-repeat center center/cover',
               height: '400px',
               color: '#000',
               padding: '70px 0',
@@ -47,7 +47,7 @@ export default function LandingPage() {
             <Col md={4} className="mb-4">
               <div className="h-100 p-4 border rounded shadow-sm">
                 <div style={{ position: 'relative', height: '150px' }}>
-                  <Image src="/task.jpg" fill alt="タスク" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
+                  <Image src="/img/task.jpg" fill alt="タスク" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
                 </div>
                 <h5 className="fw-bold mt-3">簡単なタスク管理</h5>
                 <p className="mt-2">
@@ -58,7 +58,7 @@ export default function LandingPage() {
             <Col md={4} className="mb-4">
               <div className="h-100 p-4 border rounded shadow-sm">
                 <div style={{ position: 'relative', height: '150px' }}>
-                  <Image src="/progress.jpg" fill alt="進捗" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
+                  <Image src="/img/progress.jpg" fill alt="進捗" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
                 </div>
                 <h5 className="fw-bold mt-3">進捗状況を追跡</h5>
                 <p className="mt-2">
@@ -69,7 +69,7 @@ export default function LandingPage() {
             <Col md={4} className="mb-4">
               <div className="h-100 p-4 border rounded shadow-sm">
                 <div style={{ position: 'relative', height: '150px' }}>
-                  <Image src="/access.jpg" fill alt="アクセス" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
+                  <Image src="/img/access.jpg" fill alt="アクセス" style={{ objectFit: 'cover', borderRadius: '0.25rem' }} />
                 </div>
                 <h5 className="fw-bold mt-3">いつでもどこでもアクセス</h5>
                 <p className="mt-2">
