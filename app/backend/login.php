@@ -10,8 +10,8 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
 } 
 
 //クラスの読み取り
-include("class/Database.php");
-include("class/HeaderManager.php");
+include_once(getenv("PHP_LIB_PASS")."/class/Database.php");
+include_once(getenv("PHP_LIB_PASS")."/class/HeaderManager.php");
 
 //Header関数の呼び出し
 $headerManager = new HeaderManager();

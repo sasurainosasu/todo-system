@@ -12,6 +12,7 @@ services:
     volumes:
       # appディレクトリをマウントしてNginxから参照できるようにする
       - ./app:/var/www/html
+      - ./php-lib:/var/www/php-lib
       # Nginxの設定ファイルをマウント
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
@@ -33,6 +34,7 @@ services:
     volumes:
       # appディレクトリをマウントしてPHPからファイルを実行できるようにする
       - ./app:/var/www/html
+      - ./php-lib:/var/www/php-lib
     environment:
       # MailHogの設定を追加
       MAILHOG_HOST: mailhog

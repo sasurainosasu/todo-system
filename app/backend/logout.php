@@ -5,6 +5,9 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
     exit();
 } 
 
+//クラスの呼び出し
+include_once(getenv("PHP_LIB_PASS")."/class/HeaderManager.php");
+
 // CORSヘッダーを設定
 // Next.jsアプリケーションのオリジンに合わせてURLを変更してください
 //Header関数の呼び出し

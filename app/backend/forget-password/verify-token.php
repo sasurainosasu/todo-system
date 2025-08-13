@@ -1,8 +1,8 @@
 <?php
 
 //クラスの呼び出し
-include_once("../class/Database.php");
-include("../class/HeaderManager.php");
+include_once(getenv("PHP_LIB_PASS")."/class/Database.php");
+include_once(getenv("PHP_LIB_PASS")."/class/HeaderManager.php");
 
 //Header関数の呼び出し
 $headerManager = new HeaderManager();
