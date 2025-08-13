@@ -52,7 +52,8 @@ try {
         $db->update("users",$update_set_array,["email" => $email]);
 
         //メールサービスクラスの宣言
-        $mail_service = new MailService(getenv("FROM_EMAIL"));
+        $smtp_use_flag = (getenv("SMTP_USE_FLAG") == "true") ? true : false;
+        $mail_service = new MailService(getenv("FROM_EMAIL"),$smtp_use_flag);
         
         if ($mail_service->sendPasswordResetEmail($email,$token)) {
             $db->commit();

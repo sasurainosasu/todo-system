@@ -51,7 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->insert("contact_message",$insert_array);
 
             
-            $mail_service = new MailService(getenv("FROM_EMAIL"));
+        //メールサービスクラスの宣言
+        $smtp_use_flag = (getenv("SMTP_USE_FLAG") == "true") ? true : false;
+        $mail_service = new MailService(getenv("FROM_EMAIL"),$smtp_use_flag);
 
         //メールの送信に成功した場合
 		if($mail_service->sendContactEmail($name,$email,$message)){

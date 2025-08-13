@@ -76,8 +76,9 @@ try {
     // 登録確認メールを送信
     $subject = "ToDo管理システム - ユーザー登録のご確認";
 
-
-    $mail_service = new MailService(getenv("FROM_EMAIL"));
+    //メールサービスクラスの宣言
+    $smtp_use_flag = (getenv("SMTP_USE_FLAG") == "true") ? true : false;
+    $mail_service = new MailService(getenv("FROM_EMAIL"),$smtp_use_flag);
 
     if ($mail_service->sendRegistrationEmail($email,$name,$token)) {
         //メール送信が完了したタイミングでコミットする
