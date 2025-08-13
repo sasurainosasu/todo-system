@@ -13,4 +13,4 @@ FROM php:8.2-fpm-alpine
 RUN docker-php-ext-install pdo pdo_mysql mysqli
 
 # カスタムのphp.iniファイルをコンテナ内にコピー
-COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
+COPY ./docker/php/prod.php.ini /usr/local/etc/php/php.ini

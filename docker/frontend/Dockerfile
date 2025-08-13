@@ -1,5 +1,5 @@
 # ベースイメージとしてNode.js 18のAlpine版を使用
-FROM node:20-slim
+FROM node:20-alpine
 
 # コンテナ内の作業ディレクトリを設定
 WORKDIR /app

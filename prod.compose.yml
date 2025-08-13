@@ -45,23 +45,21 @@ services:
     container_name: prod-php
     build:
       context: .
-      dockerfile: ./docker/php/Dockerfile
+      dockerfile: ./docker/php/prod.Dockerfile
     volumes:
       - ./app:/var/www/html
     environment:
-      # MailHogの設定をGmailのSMTPサーバーに変更
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - SMTP_USER=your_email@gmail.com # 👈 あなたのGmailアドレスに置き換えてください
-      - SMTP_PASS=your_app_password # 👈 アプリパスワードに置き換えてください
-      - VIRTUAL_HOST=api.example.com
-      - LETSENCRYPT_HOST=api.example.com
-      - LETSENCRYPT_EMAIL=your-email@example.com
+      - SMTP_USER=your_email@gmail.com
+      - SMTP_PASS=your_app_password
+      - VIRTUAL_HOST=api.example.com  # 👈 ここを実際のドメインに設定
+      - LETSENCRYPT_HOST=api.example.com # 👈 ここも実際のドメインに設定
+      - LETSENCRYPT_EMAIL=your-email@example.com # 👈 メールアドレスを設定
     env_file:
       - prod.env
     networks:
       - app-network
-    # mailserverへの依存関係を削除
     restart: always
 
   #--------------------------------
@@ -81,9 +79,9 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - VIRTUAL_HOST=app.example.com
-      - LETSENCRYPT_HOST=app.example.com
-      - LETSENCRYPT_EMAIL=your-email@example.com
+      - VIRTUAL_HOST=app.example.com # 👈 ここを実際のドメインに設定
+      - LETSENCRYPT_HOST=app.example.com # 👈 ここも実際のドメインに設定
+      - LETSENCRYPT_EMAIL=your-email@example.com # 👈 メールアドレスを設定
     networks:
       - app-network
     tty: true
