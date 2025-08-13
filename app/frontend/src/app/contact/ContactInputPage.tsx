@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
-import { Container, Form, Button, Spinner } from 'react-bootstrap';
+import { Form, Button, Spinner } from 'react-bootstrap';
 import ContactSteps from '../../components/ContactSteps';
 
 
@@ -77,10 +77,8 @@ const ContactInputPage: React.FC = () => {
   };
 
   return (
-    <Container className="mb-5">
-      <h2 className="mt-5 text-center">お問い合わせ</h2>
+    <>
       <ContactSteps />
-
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="formName">
           <Form.Label>お名前:</Form.Label>
@@ -143,7 +141,7 @@ const ContactInputPage: React.FC = () => {
           </Button>
         </div>
       </Form>
-    </Container>
+    </>
   );
 };
 

@@ -83,7 +83,7 @@ export default function TodoListContainer() {
         } else {
           throw new Error('サーバーからのデータ形式が不正です。');
         }
-      } catch (e) {
+      } catch {
         setError('タスクの取得に失敗しました。');
       } finally {
         setLoading(false); // 読み込み完了
@@ -173,7 +173,7 @@ export default function TodoListContainer() {
       setTodos(updatedTodos);
     } else {
       // ドラッグ元とドラッグ先が異なる列
-      const startStatus = source.droppableId as '予定' | '進行中' | '完了';
+      //const startStatus = source.droppableId as '予定' | '進行中' | '完了';
       const endStatus = destination.droppableId as '予定' | '進行中' | '完了';
 
       const updatedTodos = todos.map((todo) => {

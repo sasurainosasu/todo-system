@@ -79,8 +79,7 @@ const ContactConfirmPage: React.FC = () => {
   }
 
   return (
-    <Container className="mb-5">
-      <h2 className="mt-5 text-center">お問い合わせ</h2>
+    <>
       <ContactSteps />
       {error && <Alert variant="danger">{error}</Alert>}
       <Card className="mb-5">
@@ -122,7 +121,7 @@ const ContactConfirmPage: React.FC = () => {
           戻る
         </Button>
       </div>
-    </Container>
+    </>
   );
 };
 
