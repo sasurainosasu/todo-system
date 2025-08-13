@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }else{
             $db->rollback();
             http_response_code(500); // Internal Server Error
-            echo json_encode(['message' => 'メールの送信に失敗しました。', 'error' => $e->getMessage()]);
+            echo json_encode(['message' => 'メールの送信に失敗しました。']);
 		}
             
       
