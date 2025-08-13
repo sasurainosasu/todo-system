@@ -1,25 +1,42 @@
-# 各サービス（コンテナ）の定義
+version: '3.8'
+
 services:
   #--------------------------------
-  # Nginx (Webサーバー)
+  # リバースプロキシ
   #--------------------------------
-  nginx:
-    container_name: prod-nginx
-    build:
-      context: .
-      dockerfile: ./docker/nginx/Dockerfile
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      # appディレクトリをマウントしてNginxから参照できるようにする
-      - ./app:/var/www/html
-      # Nginxの設定ファイルをマウント
-      - ./docker/nginx/prod.default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - php
-      - frontend
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - certs:/etc/nginx/certs:ro
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
     networks:
       - app-network
+    restart: always
+
+  #--------------------------------
+  # SSL証明書自動取得コンテナ
+  #--------------------------------
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    volumes:
+      - certs:/etc/nginx/certs
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DEFAULT_EMAIL=your-email@example.com # 👈 あなたのメールアドレスに置き換えてください
+    networks:
+      - app-network
+    depends_on:
+      - nginx-proxy
+    restart: always
 
   #--------------------------------
   # PHP-FPM
@@ -30,16 +47,22 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile
     volumes:
-      # appディレクトリをマウントしてPHPからファイルを実行できるようにする
       - ./app:/var/www/html
     environment:
-      # MailHogの設定を追加
-      MAILHOG_HOST: mailhog
-      MAILHOG_PORT: 1025
+      # MailHogの設定をGmailのSMTPサーバーに変更
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your_email@gmail.com # 👈 あなたのGmailアドレスに置き換えてください
+      - SMTP_PASS=your_app_password # 👈 アプリパスワードに置き換えてください
+      - VIRTUAL_HOST=api.example.com
+      - LETSENCRYPT_HOST=api.example.com
+      - LETSENCRYPT_EMAIL=your-email@example.com
     env_file:
-      - .env
+      - prod.env
     networks:
       - app-network
+    # mailserverへの依存関係を削除
+    restart: always
 
   #--------------------------------
   # Next.js (フロントエンド)
@@ -47,28 +70,25 @@ services:
   frontend:
     container_name: prod-frontend
     build:
-      # ビルドのコンテキストをNext.jsプロジェクトのディレクトリに修正
       context: .
-      # Dockerfileへの相対パスもコンテキストに合わせて修正
       dockerfile: ./docker/frontend/prod.Dockerfile
     volumes:
-      # Next.jsのソースコードをマウントしてホットリロードを有効化
       - ./app/frontend/.next:/app/.next
       - ./app/frontend/public:/app/public
-      # node_modulesはホストからマウントせず、コンテナ内のものを維持する
       - /app/node_modules
-    ports:
-      # Next.jsのdevサーバーが使用する3000番ポートを公開
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
-      # Docker環境でのホットリロードを安定させるための設定
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - VIRTUAL_HOST=app.example.com
+      - LETSENCRYPT_HOST=app.example.com
+      - LETSENCRYPT_EMAIL=your-email@example.com
     networks:
       - app-network
-    # コンテナを起動し続けるためにttyを有効化
     tty: true
-
+    restart: always
+    
   #--------------------------------
   # MySQL (データベース)
   #--------------------------------
@@ -76,60 +96,28 @@ services:
     container_name: prod-mysql
     image: mysql:8.0
     ports:
-      # ホストの3306番ポートをコンテナの3306番ポートに接続
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: ${DB_NAME} #各自変更
-      MYSQL_USER: ${DB_USER} #各自変更
-      MYSQL_PASSWORD: ${DB_PASSWORD} #各自変更
-      MYSQL_ROOT_PASSWORD: rootpassword #各自変更
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: rootpassword
       TZ: Asia/Tokyo
+    env_file:
+      - prod.env
     volumes:
-      # データを永続化するための名前付きボリューム
       - db-data:/var/lib/mysql
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/mysql/sql:/docker-entrypoint-initdb.d #新規追加
-    networks:
-      - app-network
-
-  #--------------------------------
-  # phpMyAdmin (DB管理ツール)
-  #--------------------------------
-  db-admin:
-    container_name: prod-db-admin
-    image: phpmyadmin/phpmyadmin
-    ports:
-      # ホストの8080番ポートをコンテナの80番ポートに接続
-      - "8080:80"
-    environment:
-      # 接続先のMySQLホスト名を指定
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-    depends_on:
-      - mysql
+      - ./docker/mysql/sql:/docker-entrypoint-initdb.d
     networks:
       - app-network
       
-  #--------------------------------
-  # MailHog
-  #--------------------------------
-  mailhog:
-    container_name: dev-mailhog
-    image: mailhog/mailhog
-    logging:
-      driver: "none"
-    ports:
-      # メール受信用のSMTPポート
-      - "1025:1025"
-      # Web UI用のHTTPポート
-      - "8025:8025"
-    networks:
-      - app-network
-
-
 # 名前付きボリュームの定義
 volumes:
   db-data:
+  certs:
+  vhost.d:
+  html:
 
 # サービスが接続するネットワークの定義
 networks:
