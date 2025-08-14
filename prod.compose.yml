@@ -31,7 +31,8 @@ services:
       - html:/usr/share/nginx/html
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      - DEFAULT_EMAIL=your-email@example.com # 👈 あなたのメールアドレスに置き換えてください
+      # 👈 ここをあなたのメールアドレスに置き換えてください
+      - DEFAULT_EMAIL=your-email@example.com
     networks:
       - app-network
     depends_on:
@@ -53,9 +54,12 @@ services:
       - SMTP_PORT=587
       - SMTP_USER=your_email@gmail.com
       - SMTP_PASS=your_app_password
-      - VIRTUAL_HOST=api.example.com  # 👈 ここを実際のドメインに設定
-      - LETSENCRYPT_HOST=api.example.com # 👈 ここも実際のドメインに設定
-      - LETSENCRYPT_EMAIL=your-email@example.com # 👈 メールアドレスを設定
+      # 👈 Nginx-proxyがこの環境変数を読み取ります
+      - VIRTUAL_HOST=api.example.com
+      # 👈 acme-companionがこの環境変数を読み取り、証明書を取得・更新します
+      - LETSENCRYPT_HOST=api.example.com
+      # 👈 ここをあなたのメールアドレスに置き換えてください
+      - LETSENCRYPT_EMAIL=your-email@example.com
     env_file:
       - prod.env
     networks:
@@ -75,13 +79,17 @@ services:
       - ./app/frontend/public:/app/public
       - /app/node_modules
     expose:
+      # 👈 Nginx-proxyに公開するポート
       - "3000"
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - VIRTUAL_HOST=app.example.com # 👈 ここを実際のドメインに設定
-      - LETSENCRYPT_HOST=app.example.com # 👈 ここも実際のドメインに設定
-      - LETSENCRYPT_EMAIL=your-email@example.com # 👈 メールアドレスを設定
+      # 👈 ここを実際のドメインに設定
+      - VIRTUAL_HOST=app.example.com
+      # 👈 ここも実際のドメインに設定
+      - LETSENCRYPT_HOST=app.example.com
+      # 👈 ここをあなたのメールアドレスに置き換えてください
+      - LETSENCRYPT_EMAIL=your-email@example.com
     networks:
       - app-network
     tty: true

@@ -8,13 +8,17 @@ services:
       context: .
       dockerfile: ./docker/nginx/Dockerfile
     ports:
+      # HTTP (80) と HTTPS (443) の両方を公開
       - "80:80"
+      - "443:443"
     volumes:
       # appディレクトリをマウントしてNginxから参照できるようにする
       - ./app:/var/www/html
       - ./php-lib:/var/www/php-lib
       # Nginxの設定ファイルをマウント
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      # ★ 自己署名証明書と秘密鍵をマウント
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
       php:
         condition: service_started
