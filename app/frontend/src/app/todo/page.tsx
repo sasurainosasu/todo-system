@@ -1,7 +1,5 @@
 import {
   Container,
-  Row,
-  Col,
 } from 'react-bootstrap';
 
 // クライアントコンポーネントを直接インポート
