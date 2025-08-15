@@ -1,7 +1,10 @@
 <?php
 
-//ajax通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
-if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+// CSRF対策のためセッションを開始
+session_start();
+
+// AJAX通信かどうかを判断し、そうでない場合（直接URLを入力された場合）はプログラム終了。
+if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
     exit();
 } 
 
@@ -14,7 +17,6 @@ include_once(getenv("PHP_LIB_PASS")."/class/HeaderManager.php");
 $headerManager = new HeaderManager();
 $headerManager->setHeaders();
 
-
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['message' => '無効なリクエストメソッドです。']);
@@ -23,7 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-//セキュリティ対策で特殊文字をエスケープする
+// CSRFトークンの検証
+if (empty($_SESSION['csrf_token']) || empty($input['_csrf_token']) || $input['_csrf_token'] !== $_SESSION['csrf_token']) {
+    http_response_code(403); // Forbidden
+    echo json_encode(['message' => 'CSRFトークンが無効です。']);
+    exit();
+}
+
+// セキュリティ対策で特殊文字をエスケープする
 foreach($input as $key => $value){
     $input[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
@@ -38,8 +47,10 @@ if (empty($name) || empty($email) || empty($password)) {
     exit;
 }
 
-try {
+// トークンは一度使われたら削除する
+unset($_SESSION['csrf_token']);
 
+try {
     $db = new Database();
 
     $db->select("users",["where" => ["email" => $email]]);
@@ -71,13 +82,12 @@ try {
     ];
     
     $db->insert("temporary_users",$insert_array);
-    
 
     // 登録確認メールを送信
     $subject = "ToDo管理システム - ユーザー登録のご確認";
 
     //メールサービスクラスの宣言
-    $smtp_use_flag = (getenv("SMTP_USE_FLAG") == "true") ? true : false;
+    $smtp_use_flag = (getenv("SMTP_USE_FLAG") === "true") ? true : false;
     $mail_service = new MailService(getenv("FROM_EMAIL"),$smtp_use_flag);
 
     if ($mail_service->sendRegistrationEmail($email,$name,$token)) {

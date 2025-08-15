@@ -15,40 +15,51 @@ interface FormValues {
 const ConfirmClient: React.FC = () => {
   const router = useRouter();
   const [registrationData, setRegistrationData] = useState<FormValues | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null); // CSRFトークンを管理するstateを追加
   const [isSending, setIsSending] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [isDataLoading, setIsDataLoading] = useState<boolean>(true); // データの読み込み状態を追加
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // sessionStorageはクライアントサイドでのみ利用可能
     if (typeof window !== 'undefined') {
       const storedData = sessionStorage.getItem('registrationData');
-      
-      if (storedData) {
+      const storedToken = sessionStorage.getItem('csrfToken'); // セッションストレージからCSRFトークンを取得
+
+      if (storedData && storedToken) {
         setRegistrationData(JSON.parse(storedData));
+        setCsrfToken(storedToken);
       } else {
-        // データがない場合は、不正なアクセスとみなし、/register にリダイレクト
+        // データまたはトークンがない場合は、不正なアクセスとみなし、/register にリダイレクト
         router.replace('/register');
       }
     }
-    
-    setIsDataLoading(false); // データの読み込み完了
+
+    setIsDataLoading(false);
   }, [router]);
 
   const handleSend = async () => {
-    if (!registrationData) return;
+    if (!registrationData || !csrfToken) {
+      setApiError('送信に必要なデータまたはCSRFトークンが見つかりません。');
+      return;
+    }
 
     setIsSending(true);
     setApiError(null);
 
     try {
+      // CSRFトークンを送信データに含める
+      const dataWithToken = {
+        ...registrationData,
+        _csrf_token: csrfToken,
+      };
+
       const response = await fetch('/backend/register/send-register-email.php', {
         method: 'POST',
         headers: {
           'X-Requested-With': 'xmlhttprequest',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(registrationData), 
+        body: JSON.stringify(dataWithToken), // トークンを含んだデータを送信
       });
 
       const data = await response.json();
@@ -56,6 +67,7 @@ const ConfirmClient: React.FC = () => {
       if (response.ok) {
         // 成功したらセッションデータを削除
         sessionStorage.removeItem('registrationData');
+        sessionStorage.removeItem('csrfToken'); // CSRFトークンも削除
         router.push('/register/send-email');
       } else {
         setApiError(data.message || 'メールの送信に失敗しました。');
@@ -67,7 +79,11 @@ const ConfirmClient: React.FC = () => {
     }
   };
 
-  // データの読み込み中はローディング表示
+  const handleBack = () => {
+    // 戻るボタンが押されたときも、トークンはセッションに残しておく
+    router.back();
+  };
+
   if (isDataLoading) {
     return (
       <Container className="my-5 text-center">
@@ -78,8 +94,8 @@ const ConfirmClient: React.FC = () => {
     );
   }
 
-  // registrationDataがない場合は既にリダイレクトされているため、何も表示しない
-  if (!registrationData) {
+  if (!registrationData || !csrfToken) {
+    // データまたはトークンがない場合は既にリダイレクトされているため、nullを返す
     return null;
   }
 
@@ -99,7 +115,7 @@ const ConfirmClient: React.FC = () => {
                 <strong>メールアドレス</strong><br/>{registrationData.email}
               </div>
               <div className="mb-3">
-                <strong>パスワード</strong><br/>セキュリティの関係で表示しておりません。 
+                <strong>パスワード</strong><br/>セキュリティの関係で表示しておりません。
               </div>
               {apiError && (
                 <div className="alert alert-danger mt-3" role="alert">
@@ -118,7 +134,7 @@ const ConfirmClient: React.FC = () => {
                     '送信'
                   )}
                 </Button>
-                <Button className="mx-2" variant="secondary" onClick={() => router.back()} disabled={isSending}>
+                <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={isSending}>
                   戻る
                 </Button>
               </div>

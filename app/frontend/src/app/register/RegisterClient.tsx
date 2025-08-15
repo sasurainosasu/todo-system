@@ -47,25 +47,40 @@ const RegisterClient = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [networkError, setNetworkError] = useState<string>('');
   const [isEmailChecking, setIsEmailChecking] = useState<boolean>(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null); // CSRFトークンを管理するstateを追加
 
   useEffect(() => {
+    // セッションストレージからのデータ復元
     if (typeof window !== 'undefined') {
       const savedData = sessionStorage.getItem('registrationData');
       if (savedData) {
         setFormValues(JSON.parse(savedData));
       }
     }
+    
+    // CSRFトークンの取得
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/backend/csrf-token.php'); // PHPのAPIエンドポイント
+        if (!response.ok) {
+          throw new Error('Failed to fetch CSRF token');
+        }
+        const data = await response.json();
+        setCsrfToken(data.token);
+      } catch (error) {
+        console.error('CSRFトークンの取得に失敗しました', error);
+      }
+    };
+    fetchCsrfToken();
+    
   }, []);
 
-  // 修正箇所: handleChange 関数
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormValues({
       ...formValues,
       [name]: value,
     });
-
-    // 変更されたフィールドのエラーをクリア
     if (errors[name as keyof FormErrors]) {
       setErrors(prevErrors => ({
         ...prevErrors,
@@ -74,15 +89,13 @@ const RegisterClient = () => {
     }
   };
 
-  // メールアドレスの重複チェックをonBlurで行う
   const handleEmailBlur = async () => {
-    // メールアドレスが入力されていない、または形式が不正な場合はチェックしない
     if (!formValues.email || !/\S+@\S+\.\S+/.test(formValues.email)) {
       return;
     }
     
     setIsEmailChecking(true);
-    setErrors(prevErrors => ({ ...prevErrors, email: undefined })); // 既存のエラーをクリア
+    setErrors(prevErrors => ({ ...prevErrors, email: undefined }));
 
     try {
       const response = await fetch(EMAIL_CHECK_API_URL, {
@@ -118,11 +131,19 @@ const RegisterClient = () => {
       setIsSubmitting(false);
       return;
     }
-
+    
+    // CSRFトークンが存在しない場合はエラーを表示
+    if (!csrfToken) {
+        setNetworkError('CSRFトークンの取得に失敗しました。ページを再読み込みしてください。');
+        setIsSubmitting(false);
+        return;
+    }
+    
     try {
-      // 登録処理の実行
       // データをセッションストレージに保存
       sessionStorage.setItem('registrationData', JSON.stringify(formValues));
+      // CSRFトークンをセッションストレージに保存
+      sessionStorage.setItem('csrfToken', csrfToken);
       
       // 確認画面へ遷移
       router.push('/register/confirm');
@@ -130,13 +151,12 @@ const RegisterClient = () => {
     } catch {
       setNetworkError('サーバーとの通信中にエラーが発生しました');
     } finally {
-      setIsSubmitting(false);
+      //setIsSubmitting(false);
     }
   };
 
   const validate = (values: FormValues): FormErrors => {
     const newErrors: FormErrors = {};
-
     if (!values.name) {
       newErrors.name = '名前は必須項目です';
     }
@@ -158,7 +178,6 @@ const RegisterClient = () => {
     return newErrors;
   };
 
-  // ログイン状態の確認中はローディング表示
   if (isLoading) {
     return (
       <Container className="my-5 text-center">
@@ -208,7 +227,7 @@ const RegisterClient = () => {
                       name="email"
                       value={formValues.email}
                       onChange={handleChange}
-                      onBlur={handleEmailBlur} // onBlurを追加
+                      onBlur={handleEmailBlur}
                       isInvalid={!!errors.email}
                       disabled={isEmailChecking}
                     />
@@ -249,7 +268,11 @@ const RegisterClient = () => {
                   </Form.Group>
 
                   <div className="text-center">
-                    <Button variant="primary" type="submit" disabled={isSubmitting || isEmailChecking || !!errors.email}>
+                    <Button 
+                      variant="primary" 
+                      type="submit" 
+                      disabled={isSubmitting || isEmailChecking || !!errors.email || !csrfToken}
+                    >
                       {isSubmitting || isEmailChecking ? '確認中...' : '確認画面へ進む'}
                     </Button>
                   </div>
