@@ -1,8 +1,7 @@
 import { Container } from 'react-bootstrap';
 import ContactList from './ContactList';
-import { cookies } from 'next/headers'; // Next.js 13以降のサーバーコンポーネントでヘッダーにアクセスするためのAPI
+import { headers } from 'next/headers';
 
-// PHPから取得するデータの型を定義
 interface Item {
   name: string;
   email: string;
@@ -11,32 +10,19 @@ interface Item {
 }
 
 async function getContactList(): Promise<Item[]> {
-  try {
+// try {
+    // headers()をawaitして使用
+    const headerStore = await headers();
+    const cookie = headerStore.get('cookie') || '';
 
-    // cookies() を使って、特定の名前のCookieだけを取得
-    // Promiseが解決されるのを待って、sessionIDを取得
-    const sessionID = await cookies().get('PHPSESSID');
-
-    let phpSessionIdValue = "";
-    // sessionIDが存在する場合のみ処理
-    if (sessionID) {
-      // sessionID.valueを使ってCookieの値にアクセス
-      phpSessionIdValue = sessionID.value;
-      // ... 取得した値を使って処理を続ける ...
-    } else {
-    // Cookieが存在しない場合の処理
-      return [];
-    }
-    
     // Cookieをヘッダーとして直接設定
-    const response = await fetch(`http://nginx/backend/contact/contact-list.php`, {
+    const response = await fetch(`https://nginx/backend/contact/contact-list.php`, {
       method: 'POST',
       headers: {
         'X-Requested-With': 'xmlhttprequest',
         'Content-Type': 'application/json',
-        'Cookie': `PHPSESSID=${phpSessionIdValue}`, // ここでCookieをヘッダーに追加
+        'Cookie': cookie,
       },
-      // SSR時に毎回最新のデータを取得するための設定
       cache: 'no-store',
     });
 
@@ -51,9 +37,11 @@ async function getContactList(): Promise<Item[]> {
     }
     
     return data;
+  /*
   } catch {
     return [];
   }
+  */
 }
 
 export default async function ContactListPage() {

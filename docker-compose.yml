@@ -71,6 +71,7 @@ services:
       # Docker環境でのホットリロードを安定させるための設定
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
     develop:
       watch:
         - action: sync
