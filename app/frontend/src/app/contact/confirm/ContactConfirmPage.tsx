@@ -17,13 +17,18 @@ const ContactConfirmPage: React.FC = () => {
   const [formData, setFormData] = useState<FormData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null); // CSRFトークンを管理するためのstateを追加
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedData = sessionStorage.getItem('contactFormData');
-      if (savedData) {
+      const savedToken = sessionStorage.getItem('csrfToken'); // セッションストレージからCSRFトークンを取得
+      
+      if (savedData && savedToken) {
         setFormData(JSON.parse(savedData));
+        setCsrfToken(savedToken); // stateにトークンをセット
       } else {
+        // データまたはトークンがない場合は入力画面に戻す
         router.replace('/contact');
       }
     }
@@ -37,23 +42,34 @@ const ContactConfirmPage: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData) return;
+    if (!formData || !csrfToken) {
+      setError('送信に必要なデータまたはCSRFトークンが見つかりません。');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
     try {
+      // CSRFトークンを送信データに含める
+      const dataWithToken = {
+        ...formData,
+        _csrf_token: csrfToken,
+      };
+
       const response = await fetch('/backend/contact/contact-insert.php', {
         method: 'POST',
         headers: {
           'X-Requested-With': 'xmlhttprequest',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataWithToken), // トークンを含んだデータを送信
       });
 
       if (response.ok) {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('contactFormData');
+          sessionStorage.removeItem('csrfToken'); // 送信成功後にトークンを削除
         }
         router.replace('/contact/complete');
       } else {
@@ -67,7 +83,7 @@ const ContactConfirmPage: React.FC = () => {
     }
   };
 
-  if (!formData) {
+  if (!formData || !csrfToken) {
     return (
       <Container className="my-5 text-center">
         <Spinner animation="border" role="status">
@@ -101,7 +117,7 @@ const ContactConfirmPage: React.FC = () => {
         </Card.Body>
       </Card>
       <div className="d-flex justify-content-center">
-        <Button className="mx-2" variant="primary" onClick={handleSubmit} disabled={loading}>
+        <Button className="mx-2" variant="primary" onClick={handleSubmit} disabled={loading || !csrfToken}>
           {loading ? (
             <>
               <Spinner

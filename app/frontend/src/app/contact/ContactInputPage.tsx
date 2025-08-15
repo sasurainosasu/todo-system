@@ -4,8 +4,6 @@ import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import ContactSteps from '../../components/ContactSteps';
 
-
-// FormData型定義はそのまま使用
 interface FormData {
   name: string;
   email: string;
@@ -21,21 +19,37 @@ const ContactInputPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [loading, setLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
 
   useEffect(() => {
+    // セッションストレージからのデータ復元
     if (typeof window !== 'undefined') {
       const savedData = sessionStorage.getItem('contactFormData');
       if (savedData) {
         setFormData(JSON.parse(savedData));
       }
     }
+
+    // CSRFトークンの取得
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/backend/csrf-token.php'); // PHPのAPIエンドポイント
+        if (!response.ok) {
+          throw new Error('Failed to fetch CSRF token');
+        }
+        const data = await response.json();
+        setCsrfToken(data.token);
+      } catch (error) {
+        console.error('CSRFトークンの取得に失敗しました', error);
+      }
+    };
+    fetchCsrfToken();
   }, []);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // 入力時に、該当するエラーをクリアする
     if (errors[name as keyof FormData]) {
       setErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
@@ -66,14 +80,18 @@ const ContactInputPage: React.FC = () => {
     const newErrors = validate();
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length === 0) {
+    if (Object.keys(newErrors).length === 0 && csrfToken) {
       setLoading(true);
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('contactFormData', JSON.stringify(formData));
+        sessionStorage.setItem('csrfToken', csrfToken);
       }
       router.push('/contact/confirm');
+    } else {
+        if (!csrfToken) {
+            alert('CSRFトークンの取得に失敗しました。ページを再読み込みしてください。');
+        }
     }
-    // エラーがある場合、個別フィードバックが表示されるため、特別な処理は不要
   };
 
   return (
@@ -123,7 +141,7 @@ const ContactInputPage: React.FC = () => {
           </Form.Control.Feedback>
         </Form.Group>
         <div className="w-100 text-center">
-          <Button variant="primary" type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading || !csrfToken}>
             {loading ? (
               <>
                 <Spinner
