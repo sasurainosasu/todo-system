@@ -40,9 +40,9 @@ CREATE TABLE `contact_message` (
 --
 
 INSERT INTO `contact_message` (`id`, `name`, `email`, `message`, `created_at`) VALUES
-(1, '山田 太郎', 'yamada@example.com', 'これはテスト投稿です。', '2025-07-31 18:08:15'),
-(2, '鈴木 花子', 'suzuki@example.com', '商品を出品しました。', '2025-07-31 18:08:15'),
-(3, '佐藤 健', 'sato@example.com', '質問があります。', '2025-07-31 18:08:15');
+(1, '山田 太郎', 'test@benrinaheya.xyz', 'これはテスト投稿です。', '2025-07-31 18:08:15'),
+(2, '鈴木 花子', 'test@benrinaheya.xyz', '商品を出品しました。', '2025-07-31 18:08:15'),
+(3, '佐藤 健', 'test@benrinaheya.xyz', '質問があります。', '2025-07-31 18:08:15');
 
 -- --------------------------------------------------------
 
