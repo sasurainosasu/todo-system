@@ -11,7 +11,8 @@ export default function LandingPage() {
           <div
             style={{
               background: 'url("/img/top-hero.jpg") no-repeat center center/cover',
-              height: '400px',
+              height: '40vh',
+              minHeight:'400px',
               color: '#000',
               padding: '70px 0',
             }}

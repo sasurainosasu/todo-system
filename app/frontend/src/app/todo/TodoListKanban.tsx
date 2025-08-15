@@ -262,21 +262,24 @@ export default function TodoListContainer() {
     return {
       borderLeft: '5px solid blue',
       borderRight: '5px solid blue',
+      borderTop: '1px solid blue',
+      borderBottom: '1px solid blue',
       maxWidth:'600px',
+      padding:'5px',
     };
   };
 
   return (
     <div className="border border-radius px-3 py-5">
         <div style={getKanbanTitleStyle()} className="mx-auto text-center"> {/* 👈 このクラスを追加 */}
-          <h1 className="mb-4">
+          <h1>
             カンバンボード
           </h1>
         </div>
 
-        {saveDatabaseMessage && <Alert variant="success" className="mx-auto" style={{maxWidth:'600px',}}>{saveDatabaseMessage}</Alert>}
-        {networkError && <Alert variant="danger" className="mx-auto" style={{maxWidth:'600px',}}>{networkError}</Alert>}
-        <InputGroup className="my-2 mx-auto" style={{maxWidth:'600px',}}>
+        {saveDatabaseMessage && <Alert variant="success" className="mx-auto mt-4" style={{maxWidth:'600px',}}>{saveDatabaseMessage}</Alert>}
+        {networkError && <Alert variant="danger" className="mx-auto mt-4" style={{maxWidth:'600px',}}>{networkError}</Alert>}
+        <InputGroup className="my-4 mx-auto" style={{maxWidth:'600px',}}>
           <Form.Control
             type="text"
             value={input}
@@ -292,7 +295,7 @@ export default function TodoListContainer() {
         </InputGroup>
         <hr />
       <DragDropContext onDragEnd={onDragEnd}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }} className="mt-4">
           {renderKanbanColumn('予定', '予定', todosInPlans)}
           {renderKanbanColumn('進行中', '進行中', todosInProgress)}
           {renderKanbanColumn('完了', '完了', todosInCompleted)}
