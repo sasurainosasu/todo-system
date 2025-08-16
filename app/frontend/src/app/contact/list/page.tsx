@@ -16,7 +16,7 @@ async function getContactList(): Promise<Item[]> {
     const cookie = headerStore.get('cookie') || '';
 
     // Cookieをヘッダーとして直接設定
-    const response = await fetch(`https://nginx/backend/contact/contact-list.php`, {
+    const response = await fetch(`${process.env.BASE_URL}/backend/contact/contact-list.php`, {
       method: 'POST',
       headers: {
         'X-Requested-With': 'xmlhttprequest',
