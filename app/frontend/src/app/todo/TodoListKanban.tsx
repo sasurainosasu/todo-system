@@ -8,12 +8,14 @@ import {
   ListGroup,
   Alert,
   Spinner,
+  Row,
+  Col,
+  Modal, // Modalコンポーネントを追加
 } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
-import Cookies from 'js-cookie'; // js-cookieをインポート
+import Cookies from 'js-cookie';
 
-// @hello-pangea/dnd ライブラリから必要な型をインポート
 import {
   DragDropContext,
   Droppable,
@@ -23,23 +25,24 @@ import {
   DraggableProvided,
 } from '@hello-pangea/dnd';
 
-// Todoアイテムの型を定義
-// statusプロパティを追加
-interface Todo {
-  id: string;
-  text: string;
-  status: '予定' | '進行中' | '完了'; // ステータスを追加
-}
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ja } from 'date-fns/locale/ja';
+
+registerLocale('ja', ja);
 
 // Todoアイテムの型を定義
 interface Todo {
   id: string;
   text: string;
   status: '予定' | '進行中' | '完了';
+  date: string; // YYYY-MM-DD形式
 }
 
-const getList = (status: '予定' | '進行中' | '完了', todos: Todo[]) =>
-  todos.filter((todo) => todo.status === status);
+const getList = (status: '予定' | '進行中' | '完了', todos: Todo[], date: Date) => {
+  const formattedDate = date.toISOString().split('T')[0];
+  return todos.filter((todo) => todo.status === status && todo.date === formattedDate);
+};
 
 export default function TodoListContainer() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -49,12 +52,21 @@ export default function TodoListContainer() {
   const [networkError, setNetworkError] = useState<string>('');
   const [saveDatabaseLoading, setSaveDatabaseLoading] = useState<boolean>(false);
   const [saveDatabaseMessage, setSaveDatabaseMessage] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  // モーダルの表示・非表示を管理するstate
+  const [showCopyModal, setShowCopyModal] = useState<boolean>(false);
+  // コピー元のタスクを保持するstate
+  const [copyFromDate, setCopyFromDate] = useState<Date>(new Date());
+  // コピー先のタスクを保持するstate
+  const [copyToDate, setCopyToDate] = useState<Date>(new Date());
+  // コピー元とコピー先が同じ日付の場合のエラーメッセージ
+  const [copyError, setCopyError] = useState<string>('');
 
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  // useEffectで初回データを取得
   useEffect(() => {
     async function getTodos() {
       try {
@@ -70,23 +82,19 @@ export default function TodoListContainer() {
         }
         const data: unknown = await response.json();
 
-        // ここで取得したデータに`status`を追加
         if (Array.isArray(data)) {
-          /*
-          // completedプロパティがあればそれを基にstatusを設定
           const transformedData = data.map((item: any) => ({
             ...item,
-            status: item.completed ? '完了' : '予定',
+            date: item.date || new Date().toISOString().split('T')[0],
           }));
-          */
-          setTodos(data);
+          setTodos(transformedData);
         } else {
           throw new Error('サーバーからのデータ形式が不正です。');
         }
       } catch {
         setError('タスクの取得に失敗しました。');
       } finally {
-        setLoading(false); // 読み込み完了
+        setLoading(false);
       }
     }
 
@@ -110,10 +118,36 @@ export default function TodoListContainer() {
     const newTodo: Todo = {
       id: Date.now().toString(),
       text: input,
-      status: '予定', // 新しいタスクは'予定'ステータス
+      status: '予定',
+      date: selectedDate.toISOString().split('T')[0],
     };
     setTodos([...todos, newTodo]);
     setInput('');
+  };
+
+  const handleCopyTodos = () => {
+    // コピー元とコピー先の日付が同じかチェック
+    if (copyFromDate.toISOString().split('T')[0] === copyToDate.toISOString().split('T')[0]) {
+      setCopyError('コピー元とコピー先の日付は同じにできません。');
+      return;
+    }
+    setCopyError(''); // エラーをリセット
+
+    const todosToCopy = todos.filter(todo => todo.date === copyFromDate.toISOString().split('T')[0]);
+    if (todosToCopy.length === 0) {
+      alert('コピーするタスクがありません。');
+      return;
+    }
+
+    const newTodos = todosToCopy.map(todo => ({
+      ...todo,
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // IDを完全に新しいものに更新
+      date: copyToDate.toISOString().split('T')[0], // 新しい日付をセット
+    }));
+
+    setTodos([...todos, ...newTodos]);
+    setShowCopyModal(false); // モーダルを閉じる
+    setSelectedDate(copyToDate); // コピー先の日付に表示を切り替える
   };
 
   const handleSaveDatabase = async () => {
@@ -155,25 +189,22 @@ export default function TodoListContainer() {
       return;
     }
 
-    // ドラッグ元とドラッグ先が同じ列
-    if (source.droppableId === destination.droppableId) {
-      const sourceList = getList(source.droppableId as '予定' | '進行中' | '完了', todos);
-      const newTodos = Array.from(todos);
-      const [movedItem] = sourceList.splice(source.index, 1);
-      sourceList.splice(destination.index, 0, movedItem);
+    const sourceList = getList(source.droppableId as '予定' | '進行中' | '完了', todos, selectedDate);
+    const destinationList = getList(destination.droppableId as '予定' | '進行中' | '完了', todos, selectedDate);
 
-      const updatedTodos = newTodos.map(t => {
-        if (t.status === source.droppableId) {
-          const reorderedItem = sourceList.find(item => item.id === t.id);
-          return reorderedItem || t;
+    if (source.droppableId === destination.droppableId) {
+      const newTodos = Array.from(sourceList);
+      const [movedItem] = newTodos.splice(source.index, 1);
+      newTodos.splice(destination.index, 0, movedItem);
+
+      const updatedTodos = todos.map(t => {
+        if (t.date === selectedDate.toISOString().split('T')[0] && t.status === source.droppableId) {
+          return newTodos.find(item => item.id === t.id) || t;
         }
         return t;
       });
-      
       setTodos(updatedTodos);
     } else {
-      // ドラッグ元とドラッグ先が異なる列
-      //const startStatus = source.droppableId as '予定' | '進行中' | '完了';
       const endStatus = destination.droppableId as '予定' | '進行中' | '完了';
 
       const updatedTodos = todos.map((todo) => {
@@ -231,7 +262,6 @@ export default function TodoListContainer() {
     </div>
   );
 
-  // ローディング中のスピナー
   if (loading) {
     return (
       <div className="text-center">
@@ -242,21 +272,19 @@ export default function TodoListContainer() {
     );
   }
 
-  // データ取得エラー
   if (error) {
     return <Alert variant="danger">{error}</Alert>;
   }
 
-  // ログインしていない場合
   if (!isLoggedIn) {
     return (
-      <h2 className="text-center">このページは会員登録された方のみ閲覧可能です。</h2>
+      <h2 className="text-center my-4">このページは会員登録された方のみ閲覧可能です。</h2>
     );
   }
 
-  const todosInPlans = getList('予定', todos);
-  const todosInProgress = getList('進行中', todos);
-  const todosInCompleted = getList('完了', todos);
+  const todosInPlans = getList('予定', todos, selectedDate);
+  const todosInProgress = getList('進行中', todos, selectedDate);
+  const todosInCompleted = getList('完了', todos, selectedDate);
 
   const getKanbanTitleStyle = () => {
     return {
@@ -264,37 +292,64 @@ export default function TodoListContainer() {
       borderRight: '5px solid blue',
       borderTop: '1px solid blue',
       borderBottom: '1px solid blue',
-      maxWidth:'600px',
-      padding:'5px',
+      maxWidth: '600px',
+      padding: '5px',
     };
   };
 
   return (
     <div className="border border-radius px-3 py-5">
-        <div style={getKanbanTitleStyle()} className="mx-auto text-center"> {/* 👈 このクラスを追加 */}
-          <h1>
-            カンバンボード
-          </h1>
-        </div>
+      <div style={getKanbanTitleStyle()} className="mx-auto text-center">
+        <h1>
+          カレンダー付きカンバンボード
+        </h1>
+      </div>
 
-        {saveDatabaseMessage && <Alert variant="success" className="mx-auto mt-4" style={{maxWidth:'600px',}}>{saveDatabaseMessage}</Alert>}
-        {networkError && <Alert variant="danger" className="mx-auto mt-4" style={{maxWidth:'600px',}}>{networkError}</Alert>}
-        <InputGroup className="my-4 mx-auto" style={{maxWidth:'600px',}}>
-          <Form.Control
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="新しいタスクを入力"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddTodo();
-            }}
-          />
-          <Button variant="primary" onClick={handleAddTodo}>
-            追加
-          </Button>
-        </InputGroup>
-        <hr />
-      <DragDropContext onDragEnd={onDragEnd}>
+      {saveDatabaseMessage && <Alert variant="success" className="mx-auto mt-4" style={{ maxWidth: '600px', }}>{saveDatabaseMessage}</Alert>}
+      {networkError && <Alert variant="danger" className="mx-auto mt-4" style={{ maxWidth: '600px', }}>{networkError}</Alert>}
+
+      <Row className="mt-4 mb-2">
+        <Col md={2} className="my-2">
+          <h3 className="mx-auto text-center">表示日</h3>
+        </Col>
+        <Col md={2} className="my-2">
+          <div className="mx-auto text-center">
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date: Date) => setSelectedDate(date)}
+              dateFormat="yyyy/MM/dd"
+              locale="ja"
+              className="form-control"
+            />
+          </div>
+        </Col>
+        <Col md={6} className="my-2">
+          <InputGroup className="mx-auto">
+            <Form.Control
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="新しいタスクを入力"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddTodo();
+              }}
+            />
+            <Button variant="primary" onClick={handleAddTodo}>
+              追加
+            </Button>
+          </InputGroup>
+        </Col>
+        <Col md={2} className="my-2">
+          {/* Todoリストコピー機能のボタン */}
+          <div className="text-center">
+            <Button variant="info" onClick={() => setShowCopyModal(true)}>
+              Todoリストのコピー
+            </Button>
+          </div>                
+        </Col>
+      </Row>
+      <hr />
+      <DragDropContext onDragEnd={onDragEnd} className="mt-2">
         <div style={{ display: 'flex', justifyContent: 'space-between' }} className="mt-4">
           {renderKanbanColumn('予定', '予定', todosInPlans)}
           {renderKanbanColumn('進行中', '進行中', todosInProgress)}
@@ -302,11 +357,52 @@ export default function TodoListContainer() {
         </div>
       </DragDropContext>
 
-      <div className="text-center mt-5">
+      <div className="text-center mt-4">
         <Button variant="primary" onClick={handleSaveDatabase} disabled={saveDatabaseLoading}>
           データベースに保存する
         </Button>
       </div>
+
+      {/* Todoリストコピー用モーダル */}
+      <Modal show={showCopyModal} onHide={() => setShowCopyModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Todoリストのコピー</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="mb-3">
+            <h5 className="mb-2">コピー元の日付：
+            <DatePicker
+              selected={copyFromDate}
+              onChange={(date: Date) => setCopyFromDate(date)}
+              dateFormat="yyyy/MM/dd"
+              locale="ja"
+              className="form-control"
+            />
+            </h5>
+          </div>
+          <div className="mb-3">
+            <h5 className="mb-2">コピー先の日付：
+            <DatePicker
+              selected={copyToDate}
+              onChange={(date: Date) => setCopyToDate(date)}
+              dateFormat="yyyy/MM/dd"
+              locale="ja"
+              className="form-control"
+            />
+            </h5>
+          </div>
+          {copyError && <Alert variant="danger">{copyError}</Alert>}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCopyModal(false)}>
+            キャンセル
+          </Button>
+          <Button variant="primary" onClick={handleCopyTodos}>
+            コピー
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 }

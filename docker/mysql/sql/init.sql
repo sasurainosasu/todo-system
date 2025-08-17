@@ -136,6 +136,7 @@ CREATE TABLE `todos` (
   `text` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `completed` TINYINT(1) NOT NULL DEFAULT 0,
   `status` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '予定',
+  `date` date NOT NULL,
   `user_id` INT NOT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

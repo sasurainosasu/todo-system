@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "id" => sprintf('%017d', $_SESSION['user_id']).sprintf('%03d', $i),
                         "text" => $data[$i]["text"],
                         "status" => $data[$i]["status"],
+                        "date" => $data[$i]["date"],
                         "user_id" => $_SESSION['user_id'],
                         "created_at" => date("Y-m-d H:i:s")
                 ];
