@@ -1,5 +1,4 @@
 資料/
-prod.compose.yml
 docker/nginx/ssl
-certs/
+certs
 docker/nginx/prod.default.conf
