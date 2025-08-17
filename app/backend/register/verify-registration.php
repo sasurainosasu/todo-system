@@ -9,6 +9,7 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
 //クラスの呼び出し
 include_once(getenv("PHP_LIB_PASS")."/class/Database.php");
 include_once(getenv("PHP_LIB_PASS")."/class/HeaderManager.php");
+include_once(getenv("PHP_LIB_PASS")."/class/MailService.php");
 
 //Header関数の呼び出し
 $headerManager = new HeaderManager();
@@ -75,10 +76,21 @@ try {
 
     // temporary_users テーブルから仮登録情報を削除
     $db->delete("temporary_users",["id" => $temp_user['id']]);
-    $db->commit();
-    http_response_code(200);
-    echo json_encode(['message' => 'ユーザー登録が正常に完了しました！']);
 
+    //メールサービスクラスの宣言
+    $smtp_use_flag = (getenv("SMTP_USE_FLAG") === "true") ? true : false;
+    $mail_service = new MailService(getenv("FROM_EMAIL"),$smtp_use_flag);
+
+    if ($mail_service->sendCompleteRegistrationEmail($temp_user['email'],$temp_user['name'])) {
+        //メール送信が完了したタイミングでコミットする
+        $db->commit();
+        http_response_code(200);
+        echo json_encode(['message' => 'ユーザー登録が正常に完了しました！']);
+    } else {
+        $db->rollback();
+        http_response_code(500);
+        echo json_encode(['message' => 'ユーザー登録完了メールの送信に失敗しました。']);
+    }
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['message' => 'データベースエラー: ' . $e->getMessage()]);

@@ -8,6 +8,7 @@ if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQ
 //クラスの呼び出し
 include_once(getenv("PHP_LIB_PASS")."/class/Database.php");
 include_once(getenv("PHP_LIB_PASS")."/class/HeaderManager.php");
+include_once(getenv("PHP_LIB_PASS")."/class/MailService.php");
 
 //Header関数の呼び出し
 $headerManager = new HeaderManager();
@@ -33,10 +34,12 @@ if (empty($token) || empty($new_password)) {
 try {
     $db = new Database();
     // トークンを検証し、ユーザー情報を取得
-    $results = $db->query("SELECT id FROM users WHERE reset_token = :token AND reset_token_expires_at > '".date("Y-m-d H:i:s")."'",["token" => $token]);
+    $results = $db->query("SELECT id,name,email FROM users WHERE reset_token = :token AND reset_token_expires_at > '".date("Y-m-d H:i:s")."'",["token" => $token]);
     $user = $results[0];
     if ($user) {
         $user_id = $user['id'];
+        $user_name = $user['name'];
+        $user_email = $user['email'];
         
         // パスワードをハッシュ化
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
@@ -48,13 +51,29 @@ try {
             "reset_token" => NULL,
             "reset_token_expires_at" => NULL
         ];
+        $db->begin();
         $update_result = $db->update("users",$update_set_array,["id" => $user_id]);
+        if (!$update_result) {
+            $db->rollback();
+            http_response_code(500);
+            echo json_encode(["error" => "パスワードの更新に失敗しました。"]);
+            exit();
+        }
+        //メールサービスクラスの宣言
+        $smtp_use_flag = (getenv("SMTP_USE_FLAG") === "true") ? true : false;
+        $mail_service = new MailService(getenv("FROM_EMAIL"),$smtp_use_flag);
 
-        if ($update_result) {
+        if ($mail_service->sendCompletePasswordResetEmail($user_email,$user_name)) {
+            //メール送信が完了したタイミングでコミットする
+            $db->commit();
+            http_response_code(200);
             echo json_encode(["message" => "パスワードが正常に更新されました。"]);
         } else {
+            $db->rollback();
+            http_response_code(500);
             echo json_encode(["error" => "パスワードの更新に失敗しました。"]);
         }
+
 
     } else {
         echo json_encode(["error" => "無効なトークンまたは有効期限切れです。"]);

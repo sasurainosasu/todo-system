@@ -87,6 +87,14 @@ class MailService {
         return $this->sendEmail($toEmail, $subject, $messageBody);
     }
 
+    public function sendCompleteRegistrationEmail(string $toEmail, string $name): bool {
+        $subject = "ToDo管理システム - ユーザー登録が完了しました。";
+        $messageBody = "{$name}様";
+        $messageBody.= "\r\nToDo管理システムへのご登録が完了いたしました。";
+
+        return $this->sendEmail($toEmail, $subject, $messageBody);
+    }
+
     /**
      * パスワードリセットメールを送信するメソッド
      * @param string $toEmail 送信先メールアドレス
@@ -97,6 +105,14 @@ class MailService {
         $subject = "パスワードリセットのご案内";
         $resetUrl = $this->baseUrl . "/forget-password/reset-password?token=" . $token;
         $messageBody = "以下のURLをクリックしてパスワードをリセットしてください:\n" . $resetUrl;
+
+        return $this->sendEmail($toEmail, $subject, $messageBody);
+    }
+
+        public function sendCompletePasswordResetEmail(string $toEmail, string $name): bool {
+        $subject = "パスワードリセットが完了いたしました。";
+        $messageBody = "{$name}様";
+        $messageBody.= "\r\nパスワードのリセットが完了いたしました。";
 
         return $this->sendEmail($toEmail, $subject, $messageBody);
     }
