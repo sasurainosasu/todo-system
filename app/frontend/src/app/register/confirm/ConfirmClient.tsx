@@ -124,6 +124,9 @@ const ConfirmClient: React.FC = () => {
               )}
 
               <div className="d-flex justify-content-center">
+                <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={isSending}>
+                  戻る
+                </Button>
                 <Button className="mx-2" variant="primary" onClick={handleSend} disabled={isSending}>
                   {isSending ? (
                     <>
@@ -133,9 +136,6 @@ const ConfirmClient: React.FC = () => {
                   ) : (
                     '送信'
                   )}
-                </Button>
-                <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={isSending}>
-                  戻る
                 </Button>
               </div>
             </Card.Body>

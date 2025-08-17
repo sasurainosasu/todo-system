@@ -117,6 +117,9 @@ const ContactConfirmPage: React.FC = () => {
         </Card.Body>
       </Card>
       <div className="d-flex justify-content-center">
+        <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={loading}>
+          戻る
+        </Button>
         <Button className="mx-2" variant="primary" onClick={handleSubmit} disabled={loading || !csrfToken}>
           {loading ? (
             <>
@@ -132,9 +135,6 @@ const ContactConfirmPage: React.FC = () => {
           ) : (
             '送信'
           )}
-        </Button>
-        <Button className="mx-2" variant="secondary" onClick={handleBack} disabled={loading}>
-          戻る
         </Button>
       </div>
     </>
